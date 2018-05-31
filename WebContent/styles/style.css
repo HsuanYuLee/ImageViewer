@@ -1,0 +1,50 @@
+body {
+    background: #fff;
+    font-family: '微軟正黑體', 'Open Sans', sans-serif;
+    font-size: 13px !important;
+}
+
+.label {
+    padding-left: 10px;
+    padding-right: 3px;
+}
+
+#imageUrl {
+    margin-top: 10px;
+}
+
+#btnLogout, #btnAddDoc, #imageViewer0 {
+    display: none;
+}
+
+.Pri {
+    background-color: #e7e7e7;
+    padding: 1px 10px;
+    border:#707070 solid 1px;
+}
+
+.toolBar {
+    margin-top: 10px;
+    width: 95vw;
+    border:dashed #ccc;
+    border-width: 2px 2px 0 2px;
+    background-color:aliceblue;
+}
+
+.divImage {
+    overflow: auto;
+    height: 80vh;
+    width: 95vw;
+    border:dashed #ccc;
+    border-width: 0 2px 2px 2px;
+    text-align: center;
+    background-color:aliceblue;
+}
+
+.docImage {
+    display: none;
+}
+
+.imageCanvas {
+    background-color: #3498db;
+}
