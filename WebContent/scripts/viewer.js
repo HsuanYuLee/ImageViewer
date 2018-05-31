@@ -12,6 +12,18 @@ let $image =
         editWidth : null,
         editHeight : null,
     };
+let $images =
+    {
+        docId : [],
+        docType : [],
+        docUrl : [],
+        Page : [],
+        totalPage : [],
+        width : [],
+        height : [],
+        editWidth : [],
+        editHeight : [],
+    };
 let $divImage =
     {
         scrollBarWidth : 17,
@@ -21,6 +33,15 @@ let $divImage =
         totalRotate : 0,
         ZoomInScale : 1,
     };
+let $divImages =
+    {
+        scrollBarWidth : 17,
+        divWidth : [],
+        divHeight : [],
+        rotateDegree : 90,
+        totalRotate : [],
+        ZoomInScale : [],
+    };
 let $focus =
     {
         X : 0,
@@ -28,6 +49,14 @@ let $focus =
         width : 0,
         height : 0,
         zoomInScale : null,
+    };
+let $focuses =
+    {
+        X : [],
+        Y : [],
+        width : [],
+        height : [],
+        zoomInScale : [],
     };
 let $tag =
     {
@@ -38,9 +67,22 @@ let $tag =
         height : 0,
         zoomInScale : null,
     };
+let $tags =
+    {
+        clicked : [],
+        X : [],
+        Y : [],
+        width : [],
+        height : [],
+        zoomInScale : [],
+    };
 let $windows =
     {
         clicked : false,
+    };
+let $windowses =
+    {
+        clicked : [],
     };
 let $click =
     {
@@ -106,6 +148,16 @@ function addDoc()
 //取得圖檔
 function loadImage()
 {
+    let IVlocation = $(this).parent().parent();     //取得 imageViewer 位置
+    $docNo = IVlocation.attr("id").match(/\d+/);    //取得第幾份文檔
+    $image.docId = IVlocation.find('.docid').val();
+
+    $images.docId[$docNo] = IVlocation.find('.docid').val();
+    if ($images.Page[$docNo] == null)
+    {
+        $images.Page[$docNo] = 1;
+    }
+
     /*
     換頁判斷
     */
@@ -113,18 +165,25 @@ function loadImage()
     {
         case "PageUp":
             $image.Page--;
+            $images.Page[$docNo]--;
             break;
         case "PageDown":
             $image.Page++;
+            $images.Page[$docNo]++;
             break;
     }
 
-    let IVlocation = $(this).parent().parent();     //取得 imageViewer 位置
-    $docNo = IVlocation.attr("id").match(/\d+/);    //取得第幾份文檔
-    $image.docId = IVlocation.find('.docid').val();
 
-    if(IVlocation.find(".tiff").prop("checked")) {$image.docType = IVlocation.find(".tiff").val()}
-    else {$image.docType = null}
+    if(IVlocation.find(".tiff").prop("checked"))
+    {
+        $image.docType = IVlocation.find(".tiff").val();
+        $images.docType[$docNo] = IVlocation.find(".tiff").val();
+    }
+    else
+    {
+        $image.docType = null;
+        $images.docType[$docNo] = null;
+    }
 
     IVlocation.find(".page").val($image.Page);
     let currentPage = $image.Page;
@@ -150,6 +209,16 @@ function loadImage()
 
                 console.log("url="+$image.docUrl);
 
+                $images.docUrl[$docNo] = document.location.href
+                    .replace(
+                        "index.html",
+                        "imageServlet?docId=" + $images.docId[$docNo]
+                        + "&currentPage=" + $images.Page[$docNo]
+                    );
+                if ($image.docType !== null){$image.docUrl += "&type="+$image.docType}
+
+                console.log("url="+$image.docUrl);
+
                 /*
                 showImage
                 */
@@ -169,9 +238,17 @@ function loadImage()
                     };
                     xhr.send();
                 }
+
+                alert("docId = "+$images.docId
+                    +"\n"+"docPage = "+$images.Page
+                    +"\n"+"docType = "+$images.docType
+                    +"\n"+"docUrl = "+$images.docUrl);
             },
             error : function() {alert("連線失敗!!");}
         });
+
+
+
 }
 //----------------------------------------------------------------------------------------------------------------------
 //初始化數據
