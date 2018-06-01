@@ -9,11 +9,24 @@ body {
     padding-right: 3px;
 }
 
+.PageNo {
+    padding-left: 10px;
+    padding-right: 3px;
+}
+
+.PageNo, .PageList {
+    display: none;
+}
+
+.btnSubmit {
+    margin-left: 10px;
+}
+
 #imageUrl {
     margin-top: 10px;
 }
 
-#btnLogout, #btnAddDoc, #imageViewer0 {
+#btnLogout, #btnAddDoc, .imageViewer {
     display: none;
 }
 
@@ -29,6 +42,10 @@ body {
     border:dashed #ccc;
     border-width: 2px 2px 0 2px;
     background-color:aliceblue;
+}
+
+.Max, .Min, .Close {
+    float: right;
 }
 
 .divImage {

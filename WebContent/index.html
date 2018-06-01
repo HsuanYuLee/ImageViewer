@@ -18,7 +18,7 @@
             $("#btnLogout").click(logout);
             $("#btnAddDoc").click(addDoc);
 
-            $("#imageViewer0").setViewer();
+            $(".imageViewer").setViewer();
         });
     </script>
 </head>
@@ -35,7 +35,7 @@
     </form>
 </div>
 
-<div id="imageViewer0">
+<div id="imageViewer0" class="imageViewer">
     <div class="toolBar">
         <button class="FitHeight" title="最適高度"><i class="fa fa-arrows-v fa-1x"></i></button>
         <button class="FitWidth" title="最適寬度"><i class="fa fa-arrows-h fa-1x"></i></button>
@@ -48,12 +48,15 @@
         <button class="PageUp" title="上一頁"><i class="fa fa-arrow-left fa-1x"></i></button>
         <button class="PageDown" title="下一頁"><i class="fa fa-arrow-right fa-1x"></i></button>
         <button class="Tag" title="標記"><i class="fa fa-bookmark fa-1x"></i></button>
-        <button class="Min" title="最小"><i class="fa fa-window-minimize fa-1x"></i></button>
-        <button class="Max" title="還原"><i class="fa fa-window-restore fa-1x"></i></button>
         <span class='label'>DocId:</span><input type="text" class="docid" size="20px" value="">
-        <span class='label'>PageNo:</span><input type="text" class="page" size="20px" value="">
+
+        <span class="PageNo">PageNo:</span><select class="PageList"></select>
         <span class="label">DocType:</span><input type="checkbox" class="tiff" size="20px" value="tiff">Tiff
+
         <input class="btnSubmit" type="button" value="Get Image">
+        <button class="Close" title="關閉"><i class="fa fa-window-close fa-1x"></i></button>
+        <button class="Max" title="還原"><i class="fa fa-window-restore fa-1x"></i></button>
+        <button class="Min" title="最小"><i class="fa fa-window-minimize fa-1x"></i></button>
     </div>
     <div class="divImage">
         <img class="docImage" src="image/loading.gif"/>

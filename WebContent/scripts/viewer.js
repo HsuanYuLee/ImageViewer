@@ -1,4 +1,5 @@
-let $docNum = 0;
+let $docIdNum = 0;
+let $docTotalNum = 1;
 let $images =
     {
         docId : [],
@@ -74,27 +75,32 @@ $.fn.setViewer = function ()
     $(this).find(".Tag").click(showTag);
     $(this).find(".Min").click(windows);
     $(this).find(".Max").click(windows);
+    $(this).find(".Close").click(closeWindow);
 };
 //登入
 function login()
 {
     $("#btnLogout").css("display","inline");
     $("#btnAddDoc").css("display","inline");
-    $("#imageViewer0").css("display","block");
+    $(".imageViewer").css("display","block");
 }
 //登出
 function logout()
 {
     $("#btnLogout").css("display","none");
     $("#btnAddDoc").css("display","none");
-    $("#imageViewer0").css("display","none");
+    $(".imageViewer").css("display","none");
 }
 //增加繪圖區
 function addDoc()
 {
-    $("#imageViewer"+$docNum).after($("#imageViewer"+$docNum).clone().prop("id","imageViewer"+($docNum+1)));
-    $docNum++;
-    $("#imageViewer"+$docNum).setViewer();
+    $("#imageViewer"+$docIdNum).after($("#imageViewer"+$docIdNum).clone().prop("id","imageViewer"+($docIdNum+1)));
+    $docIdNum++;
+    $("#imageViewer"+$docIdNum)
+        .attr("class","imageViewer")
+        .css("display","block")
+        .setViewer();
+    $docTotalNum++;
 }
 //取得圖檔
 function loadImage()
@@ -102,27 +108,54 @@ function loadImage()
     let IVlocation = $(this).parent().parent();     //取得 imageViewer 位置
     let $docNo = IVlocation.attr("id").match(/\d+/);    //取得第幾份文檔
     $images.docId[$docNo] = IVlocation.find('.docid').val();
+    $images.totalPage[$docNo] = 3;
 
-    $images.Page[$docNo] = IVlocation.find(".page").val();
-    if ($images.Page[$docNo] == 0)
-    {$images.Page[$docNo] = 1;}
+    //顯示第幾張圖
+    IVlocation.find(".PageNo").css("display","inline");
+    IVlocation.find(".PageList").css("display","inline");
+    if (IVlocation.find("option").length === 0)
+    {
+        for (let i = 1; i<=$images.totalPage[$docNo]; i++)
+        {IVlocation.find(".PageList").append("<option value="+i+">"+i+"</option>")}
+    }
+    //------------------------------------------------------------------------------------------------------------------
+    //換頁
+    let pageNO = IVlocation.find(".PageList").val();
     switch ($(this).attr("class"))
     {
         case "PageUp":
-            $images.Page[$docNo]--;
+            pageNO--;
             break;
         case "PageDown":
-            $images.Page[$docNo]++;
+            pageNO++;
             break;
     }
-    IVlocation.find(".page").val($images.Page[$docNo]);
-
+    if (pageNO <= "1")
+    {
+        IVlocation.find(".PageUp").prop("disabled",true);
+        IVlocation.find(".PageDown").prop("disabled",false);
+        pageNO = 1;
+    }
+    else if (pageNO >= "3")
+    {
+        IVlocation.find(".PageUp").prop("disabled",false);
+        IVlocation.find(".PageDown").prop("disabled",true);
+        pageNO = 3;
+    }
+    else
+    {
+        IVlocation.find(".PageUp").prop("disabled",false);
+        IVlocation.find(".PageDown").prop("disabled",false);
+    }
+    IVlocation.find(".PageList").val(pageNO);
+    let currentPage = IVlocation.find(".PageList").val();
+    //------------------------------------------------------------------------------------------------------------------
+    //是否用tiff檔
     if(IVlocation.find(".tiff").prop("checked"))
     {$images.docType[$docNo] = IVlocation.find(".tiff").val();}
     else
     {$images.docType[$docNo] = null;}
-
-    let currentPage = $images.Page[$docNo];
+    //------------------------------------------------------------------------------------------------------------------
     $.ajax(
         {
             type: "POST",
@@ -185,15 +218,8 @@ function getImageSize()
     $images.height[$docNo] = $(this).height();
     $images.editWidth[$docNo] = $images.width[$docNo];
     $images.editHeight[$docNo] = $images.height[$docNo];
-
-    console.log("docNO = "+$docNo
-        +"\ndocId = "+$images.docId
-        +"\ndocPage = "+$images.Page
-        +"\ndocType = "+$images.docType
-        +"\ndocUrl = "+$images.docUrl
-        +"\nwidth : "+ $images.width
-        +"\nheight : "+ $images.height);
 }
+//----------------------------------------------------------------------------------------------------------------------
 //初始化canvas
 function setConvas()
 {
@@ -237,6 +263,14 @@ function setConvas()
             fromCenter: false
         })
         .drawLayers();
+    console.log("docNO = "+$docNo
+        +"\ndocId = "+$images.docId
+        +"\ndocPage = "+$images.Page
+        +"\ndocType = "+$images.docType
+        +"\ndocUrl = "+$images.docUrl
+        +"\nwidth : "+ $images.width
+        +"\nheight : "+ $images.height
+        +"\nDocTotalNum : "+ $docTotalNum);
     //------------------------------------------------------------------------------------------------------------------
     //各層canvas加入滑鼠事件
     //關閉右鍵選單
@@ -263,6 +297,10 @@ function setConvas()
 
                 if($(this).closest("#imageViewer"+$docNo).find(".Tag").css("color") === "rgb(52, 152, 219)")
                 {
+                    $(this).closest(".divImage").find(".imageCanvas").setLayer("Tag"+$docNo,
+                        {
+                            visible : true
+                        });
                     switch ($click.clickType)
                     {
                         case 1:
@@ -499,6 +537,12 @@ function windows()
             $(this).find("i").toggleClass("fa fa-window-maximize fa-1x fa fa-window-restore fa-1x");
             break;
     }
+}
+function closeWindow()
+{
+    let IVlocation = $(this).parent().parent();     //取得 imageViewer 位置
+    IVlocation.css("display","none");
+    $docTotalNum--;
 }
 function scaleAndRotate($docNo)
 {
