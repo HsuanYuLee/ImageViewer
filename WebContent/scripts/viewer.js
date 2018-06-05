@@ -36,6 +36,7 @@ let $tags =
         Y : [],
         width : [],
         height : [],
+        totalRotate : [],
         zoomInScale : [],
     };
 let $click =
@@ -73,6 +74,7 @@ $.fn.setViewer = function ()
     $(this).find(".PageUp").click(loadImage);
     $(this).find(".PageDown").click(loadImage);
     $(this).find(".Tag").click(showTag);
+    $(this).find(".Edit").click(edit);
     $(this).find(".Min").click(windows);
     $(this).find(".Max").click(windows);
     $(this).find(".Close").click(closeWindow);
@@ -83,13 +85,12 @@ function login()
     $("#btnLogout").css("display","inline");
     $("#btnAddDoc").css("display","inline");
     $(".imageViewer").css("display","block");
+    $("#btnLogin").prop("disabled",true);
 }
 //登出
 function logout()
 {
-    $("#btnLogout").css("display","none");
-    $("#btnAddDoc").css("display","none");
-    $(".imageViewer").css("display","none");
+    location.reload()
 }
 //增加繪圖區
 function addDoc()
@@ -107,6 +108,7 @@ function loadImage()
 {
     let IVlocation = $(this).parent().parent();     //取得 imageViewer 位置
     let $docNo = IVlocation.attr("id").match(/\d+/);    //取得第幾份文檔
+    showEdit($docNo);
     $images.docId[$docNo] = IVlocation.find('.docid').val();
     $images.totalPage[$docNo] = 3;
 
@@ -305,6 +307,7 @@ function setConvas()
                     {
                         case 1:
                             $(this).closest(".divImage").find(".imageCanvas").css("cursor","pointer");
+                            $tags.totalRotate[$docNo] = 0;
                             $tags.zoomInScale[$docNo] = 1;
                             $tags.X[$docNo] = $click.startX;
                             $tags.Y[$docNo] = $click.startY;
@@ -316,6 +319,7 @@ function setConvas()
                                     y: $tags.Y[$docNo],
                                     width: $tags.width[$docNo],
                                     height: $tags.height[$docNo],
+                                    rotate: $tags.totalRotate[$docNo]
                                 })
                                 .drawLayers();
                             break;
@@ -473,9 +477,11 @@ function transform()
             break;
         case "RotateCW":
             $divImages.totalRotate[$docNo] += $divImages.rotateDegree;
+            $tags.totalRotate[$docNo] += $divImages.rotateDegree;
             break;
         case "RotateCCW":
             $divImages.totalRotate[$docNo] -= $divImages.rotateDegree;
+            $tags.totalRotate[$docNo] += $divImages.rotateDegree;
             break;
     }
     scaleAndRotate($docNo);
@@ -500,6 +506,47 @@ function showTag()  //設定Tag鈕變化
             break;
     }
 }
+function edit()
+{
+    let IVlocation = $(this).parent().parent();     //取得 imageViewer 位置
+    let $docNo = IVlocation.attr("id").match(/\d+/);    //取得第幾份文檔
+
+    switch ($(this).find("i").attr("class"))
+    {
+        case "fa fa-edit fa-1x":
+            $(this).parent().next().css("width","70vw").css("border-width","0 0 2px 2px");
+            $(this).parent().next().next().css("width","25vw").css("display","inline-block");
+            showEdit($docNo);
+            break;
+        case "fa-edit fa fa-1x":
+            $(this).parent().next().css("width","70vw").css("border-width","0 0 2px 2px");
+            $(this).parent().next().next().css("display","inline-block");
+            showEdit($docNo);
+            break;
+        case "fa fa-eye fa-1x":
+            $(this).parent().next().css("width","95vw").css("border-width","0 2px 2px 2px");
+            $(this).parent().next().next().css("display","none");
+            break;
+    }
+   //$(this).parent().next().next().css("width","25vw").css("display","inline-block");
+    $(this).find("i").toggleClass("fa fa-edit fa-1x fa fa-eye fa-1x");
+}
+function showEdit($docNo)
+{
+    $("#imageViewer"+$docNo).find(".DocNo").text($("#imageViewer"+$docNo).find(".docid").val());
+
+    switch ($("#imageViewer"+$docNo).find(".docid").val())
+    {
+        case "20188":
+            break;
+        case "27895":
+
+            break;
+        case "20256":
+            break;
+    }
+
+}
 function windows()
 {
     let IVlocation = $(this).parent().parent();     //取得 imageViewer 位置
@@ -509,29 +556,73 @@ function windows()
         case "Min":
             switch ($(this).find("i").attr("class"))
             {
-                case "fa fa-window-minimize fa-1x" :
-                    $("#imageViewer"+$docNo).find(".divImage").css("height","0");
+                case "fa fa-window-minimize fa-1x":
+                    $(this).parent().css("border-width","2px 2px 2px 2px");
+                    $(this).parent().next().css("display","none");
+                    $(this).parent().next().next().css("display","none");
                     break;
                 case "fa-window-minimize fa fa-1x" :
-                    $("#imageViewer"+$docNo).find(".divImage").css("height","0");
+                    $(this).parent().css("border-width","2px 2px 2px 2px");
+                    $(this).parent().next().css("display","none");
+                    $(this).parent().next().next().css("display","none");
                     break;
                 case "fa fa-window-maximize fa-1x" :
-                    $("#imageViewer"+$docNo).find(".divImage").css("height","80vh");
+                    $(this).parent().css("border-width","2px 2px 0 2px");
+                    if($(this).parent().parent().find(".Edit").find("i").attr("class") === "fa fa-eye fa-1x")
+                    {
+                        $(this).parent().next()
+                            .css("width","70vw")
+                            .css("display","inline-block")
+                            .css("border-width","0 0 2px 2px");
+                        $(this).parent().next().next().css("display","inline-block");
+                    }
+                    else
+                    {
+                        $(this).parent().next()
+                            .css("width","95vw")
+                            .css("display","inline-block")
+                            .css("border-width","0 2px 2px 2px");
+                        $(this).parent().next().next().css("display","none");
+                    }
                     break;
             }
             $(this).find("i").toggleClass("fa fa-window-minimize fa-1x fa fa-window-maximize fa-1x");
             break;
         case "Max":
+            $(this).next().find("i").attr("class","fa fa-window-minimize fa-1x");
+            if($(this).parent().parent().find(".Edit").find("i").attr("class") === "fa fa-eye fa-1x")
+            {
+                $(this).parent().next()
+                    .css("width","70vw")
+                    .css("display","inline-block")
+                    .css("border-width","0 0 2px 2px");
+                $(this).parent().next().next().css("display","inline-block");
+            }
+            else
+            {
+                $(this).parent().next()
+                    .css("width","95vw")
+                    .css("display","inline-block")
+                    .css("border-width","0 2px 2px 2px");
+                $(this).parent().next().next().css("display","none");
+            }
             switch ($(this).find("i").attr("class"))
             {
                 case "fa-window-maximize fa fa-1x" :
-                    $("#imageViewer"+$docNo).find(".divImage").css("height","80vh");
+                    $(this).parent().next().css("height","80vh");
+                    $(this).parent().next().next().css("height","80vh");
+                    break;
+                case "fa fa-window-maximize fa-1x" :
+                    $(this).parent().next().css("height","80vh");
+                    $(this).parent().next().next().css("height","80vh");
                     break;
                 case "fa fa-window-restore fa-1x" :
-                    $("#imageViewer"+$docNo).find(".divImage")
+                    $(this).parent().next()
                         .css("height",$tags.height[$docNo]*$tags.zoomInScale[$docNo])
                         .scrollLeft($tags.X[$docNo]*$tags.zoomInScale[$docNo])
                         .scrollTop($tags.Y[$docNo]*$tags.zoomInScale[$docNo]);
+                    $(this).parent().next().next()
+                        .css("height",$tags.height[$docNo]*$tags.zoomInScale[$docNo]);
                     break;
             }
             $(this).find("i").toggleClass("fa fa-window-maximize fa-1x fa fa-window-restore fa-1x");
@@ -560,8 +651,7 @@ function scaleAndRotate($docNo)
         .attr("height",
             Math.abs($images.editHeight[$docNo] * Math.cos($divImages.totalRotate[$docNo] * Math.PI / 180)) +
             Math.abs($images.editWidth[$docNo] * Math.sin($divImages.totalRotate[$docNo] * Math.PI / 180)))
-        .setLayer(
-            "Image"+$docNo, {
+        .setLayer("Image"+$docNo, {
                 x: (Math.abs($images.editHeight[$docNo] * Math.sin($divImages.totalRotate[$docNo] * Math.PI / 180))
                     + Math.abs($images.editWidth[$docNo] * Math.cos($divImages.totalRotate[$docNo] * Math.PI / 180))) / 2,
                 y: (Math.abs($images.editHeight[$docNo] * Math.cos($divImages.totalRotate[$docNo] * Math.PI / 180))
@@ -569,22 +659,30 @@ function scaleAndRotate($docNo)
                 scale: $divImages.zoomInScale[$docNo],
                 rotate: $divImages.totalRotate[$docNo]
             })
-        .setLayer(
-            "Focus"+$docNo, {
+        .setLayer("Focus"+$docNo, {
                 x: $focuses.X[$docNo]*$focuses.zoomInScale[$docNo],
                 y: $focuses.Y[$docNo]*$focuses.zoomInScale[$docNo],
                 width: $focuses.width[$docNo]*$focuses.zoomInScale[$docNo],
                 height: $focuses.height[$docNo]*$focuses.zoomInScale[$docNo],
             })
-        .setLayer(
-            "Tag"+$docNo, {
+        .setLayer("Tag"+$docNo, {
                 x: $tags.X[$docNo]*$tags.zoomInScale[$docNo],
                 y: $tags.Y[$docNo]*$tags.zoomInScale[$docNo],
                 width: $tags.width[$docNo]*$tags.zoomInScale[$docNo],
                 height: $tags.height[$docNo]*$tags.zoomInScale[$docNo],
             })
         .drawLayers();
-
+    if ($tags.totalRotate[$docNo]%360 !== 0)
+    {
+        $("#imageViewer"+$docNo).find(".imageCanvas")
+            .setLayer("Tag"+$docNo, {
+                x: 0,
+                y: 0,
+                width: 0,
+                height: 0,
+            })
+            .drawLayers();
+    }
     console.log(
         "$docNo="+$docNo+"\n"
         +"width="+$images.editWidth[$docNo]+"\n"
@@ -597,6 +695,7 @@ function scaleAndRotate($docNo)
         +"abZoomInScale="+$divImages.zoomInScale[$docNo]+"\n"
         +"rotateDegree="+$divImages.rotateDegree+"\n"
         +"totalRotate="+$divImages.totalRotate[$docNo]+"\n"
+        +"tagsRotate="+$tags.totalRotate[$docNo]+"\n"
         +"$images.docUrl[$docNo]="+$images.docUrl[$docNo]+"\n"
         +"x="+(Math.abs($images.editHeight[$docNo] * Math.sin($divImages.totalRotate[$docNo] * Math.PI / 180))
         + Math.abs($images.editWidth[$docNo] * Math.cos($divImages.totalRotate[$docNo] * Math.PI / 180))) / 2+"\n"

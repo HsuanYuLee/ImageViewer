@@ -9,7 +9,6 @@
     <script type="text/javascript" src="scripts/jquery-1.12.3.js"></script>
     <script type="text/javascript" src="scripts/jcanvas.min.js"></script>
     <script type="text/javascript" src="scripts/viewer.js"></script>
-    <!--<script type="text/javascript" src="scripts/imageViewer.js"></script>-->
     <script type="text/javascript" src="scripts/tiff.min.js"></script>
     <script>
         $(function()
@@ -48,8 +47,9 @@
         <button class="PageUp" title="上一頁"><i class="fa fa-arrow-left fa-1x"></i></button>
         <button class="PageDown" title="下一頁"><i class="fa fa-arrow-right fa-1x"></i></button>
         <button class="Tag" title="標記"><i class="fa fa-bookmark fa-1x"></i></button>
-        <span class='label'>DocId:</span><input type="text" class="docid" size="20px" value="">
+        <button class="Edit" title="編輯"><i class="fa fa-edit fa-1x"></i></button>
 
+        <span class='label'>DocId:</span><input type="text" class="docid" size="20px" value="">
         <span class="PageNo">PageNo:</span><select class="PageList"></select>
         <span class="label">DocType:</span><input type="checkbox" class="tiff" size="20px" value="tiff">Tiff
 
@@ -62,10 +62,11 @@
         <img class="docImage" src="image/loading.gif"/>
         <canvas class="imageCanvas">
         </canvas>
+    </div><div class="divEdit">
+
+        <p>文件編號：<b class="DocNo"></b></p>
+
     </div>
 </div>
-
-
-
 </body>
 </html>

@@ -4,14 +4,13 @@ body {
     font-size: 13px !important;
 }
 
-.label {
+.label, .PageNo {
     padding-left: 10px;
     padding-right: 3px;
 }
 
-.PageNo {
-    padding-left: 10px;
-    padding-right: 3px;
+.toolMax {
+    display: block;
 }
 
 .PageNo, .PageList {
@@ -48,14 +47,26 @@ body {
     float: right;
 }
 
-.divImage {
+.divImage, .divEdit {
     overflow: auto;
     height: 80vh;
-    width: 95vw;
+    margin: 0;
     border:dashed #ccc;
+    background-color: aliceblue;
+    display: inline-block;
+}
+
+.divImage {
+    width: 95vw;
     border-width: 0 2px 2px 2px;
     text-align: center;
-    background-color:aliceblue;
+
+}
+
+.divEdit {
+    width: 25vw;
+    border-width: 0 2px 2px 0;
+    display: none;
 }
 
 .docImage {
