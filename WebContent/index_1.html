@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>ImageViewer_1</title>
+    <script type="text/javascript" src="scripts/jquery-1.12.3.js"></script>
+    <script type="text/javascript" src="scripts/tiff.min.js"></script>
+    <script type="text/javascript" src="scripts/imageViewer.js"></script>
+    <script>
+        $(function()
+        {
+            $("#Viewer").showViewer({
+                viewerWidth: 1000,
+                viewerHeight: 600,
+                displayAfterLoad: true,
+                showAnnotationTool: true,
+                waterMarkText: '中文 ImageViewer Demo',
+                imageServerUrl: 'http://192.168.1.100/imgURL'
+            });
+        });
+    </script>
+</head>
+<body>
+    <div id="Viewer">
+
+    </div>
+
+</body>
+</html>

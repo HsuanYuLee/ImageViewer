@@ -43,7 +43,7 @@
         <button class="ZoomOut" title="縮小"><i class="fa fa-search-minus fa-1x"></i></button>
         <button class="RotateCW" title="順時針旋轉"><i class="fa fa-repeat fa-1x"></i></button>
         <button class="RotateCCW" title="逆時針旋轉"><i class="fa fa-undo fa-1x"></i></button>
-        <a class="Pri" title="列印"><i class="fa fa-print fa-1x"></i></a>
+        <a class="Pri" title="下載"><i class="fa fa-download fa-1x"></i></a>
         <button class="PageUp" title="上一頁"><i class="fa fa-arrow-left fa-1x"></i></button>
         <button class="PageDown" title="下一頁"><i class="fa fa-arrow-right fa-1x"></i></button>
         <button class="Tag" title="標記"><i class="fa fa-bookmark fa-1x"></i></button>
@@ -52,20 +52,17 @@
         <span class='label'>DocId:</span><input type="text" class="docid" size="20px" value="">
         <span class="PageNo">PageNo:</span><select class="PageList"></select>
         <span class="label">DocType:</span><input type="checkbox" class="tiff" size="20px" value="tiff">Tiff
-
         <input class="btnSubmit" type="button" value="Get Image">
+
         <button class="Close" title="關閉"><i class="fa fa-window-close fa-1x"></i></button>
         <button class="Max" title="還原"><i class="fa fa-window-restore fa-1x"></i></button>
         <button class="Min" title="最小"><i class="fa fa-window-minimize fa-1x"></i></button>
     </div>
     <div class="divImage">
-        <img class="docImage" src="image/loading.gif"/>
+        <img class="docImage"/>
         <canvas class="imageCanvas">
         </canvas>
     </div><div class="divEdit">
-
-        <p>文件編號：<b class="DocNo"></b></p>
-
     </div>
 </div>
 </body>

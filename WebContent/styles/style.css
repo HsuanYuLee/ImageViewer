@@ -9,14 +9,6 @@ body {
     padding-right: 3px;
 }
 
-.toolMax {
-    display: block;
-}
-
-.PageNo, .PageList {
-    display: none;
-}
-
 .btnSubmit {
     margin-left: 10px;
 }
@@ -60,7 +52,6 @@ body {
     width: 95vw;
     border-width: 0 2px 2px 2px;
     text-align: center;
-
 }
 
 .divEdit {
@@ -74,5 +65,5 @@ body {
 }
 
 .imageCanvas {
-    background-color: #3498db;
+   // background-color: #3498db;
 }
