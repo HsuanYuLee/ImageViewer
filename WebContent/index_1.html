@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <title>ImageViewer_1</title>
+    <link href="./styles/font-awesome/css/font-awesome.min.css" rel="stylesheet" type="text/css"/>
     <script type="text/javascript" src="scripts/jquery-1.12.3.js"></script>
     <script type="text/javascript" src="scripts/tiff.min.js"></script>
     <script type="text/javascript" src="scripts/imageViewer.js"></script>
@@ -10,8 +11,8 @@
         $(function()
         {
             $("#Viewer").showViewer({
-                viewerWidth: 1000,
-                viewerHeight: 600,
+                viewerWidth: '95vw',
+                viewerHeight: '80vh',
                 displayAfterLoad: true,
                 showAnnotationTool: true,
                 waterMarkText: '中文 ImageViewer Demo',
@@ -21,9 +22,8 @@
     </script>
 </head>
 <body>
-    <div id="Viewer">
-
-    </div>
+<h1>EZacquire ImageViewer</h1>
+<div id="Viewer"></div>
 
 </body>
 </html>
