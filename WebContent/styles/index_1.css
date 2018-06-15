@@ -1,0 +1,50 @@
+body {
+    background: #fff;
+    font-family: '微軟正黑體', 'Open Sans', sans-serif;
+    font-size: 13px !important;
+}
+
+.label {
+    padding-left: 10px;
+    padding-right: 3px;
+}
+
+#firstToolBar {
+    margin-top: 10px;
+    width: 95vw;
+    border:dashed #ccc;
+    border-width: 2px 2px 0 2px;
+    background-color:aliceblue;
+}
+
+#firstDivImage {
+    overflow: auto;
+    margin: 0;
+    position: absolute;
+    border:dashed #ccc;
+    border-width: 0 2px 2px 2px;
+    background-color: aliceblue;
+    display: inline-block;
+}
+
+#oriImg {
+    display: none;
+}
+
+#imageCanvas, #waterMarkCanvas, #focusCanvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+
+#imageCanvas {
+    z-index: 0;
+}
+
+#waterMarkCanvas {
+    z-index: 1;
+}
+
+#focusCanvas {
+    z-index: 2;
+}

@@ -1,0 +1,71 @@
+<!doctype html>
+<html>
+    <head>
+        <meta charset="UTF-8" />
+        <title>View Image</title>
+        <link rel="stylesheet" href="./imageviewer/font-awesome/css/font-awesome.min.css" />
+        <link rel="stylesheet" href="./imageviewer/ezacquire.imageviewer.css" />
+        <link rel="stylesheet" href="./imageviewer/tingle.css" />
+        <script src="./imageviewer/tiff.min.js"></script>
+        <script src="./jquery-1.12.3.js"></script>
+        <script src="./imageviewer/ezacquire.imageviewer.js"></script>
+        <script src="./imageviewer/jquery.jscrollpane.min.js"></script>
+        <script src="./imageviewer/tingle.min.js"></script>
+        <script type="text/javascript">
+            var $myViewer;
+            $(function()
+              {
+                $myViewer = $('#myDiv').imageviewer(
+                  {
+                    viewerWidth: 1000,
+                    viewerHeight: 600,
+                    displayAfterLoad: true,
+                    showAnnotationTool: true,
+                    waterMarkText: '中文 ImageViewer Demo',
+                    imageServerUrl: 'http://192.168.1.100/imgURL'
+                  });
+
+                $myViewer.loadAnnotation();
+                $myViewer.loadImageFromURL('./images/test.tif');
+            })
+
+            function loadImageAndZoomArea()
+            {
+                $myViewer.loadImageAndZoomArea(
+                  {
+                    docId: docId,
+                    currentPage: currentPage,
+                    viewPage: viewPage,
+                    totalPage: totalPage,
+                    formId: formId
+                  }, x, y, width, height);
+            };
+
+            function scaleUp()
+            {
+                $myViewer.scaleUp();
+            }
+
+            function scaleDown()
+            {
+                $myViewer.scaleDown();
+            }
+
+            function zoomArea(x, y, width , height)
+            {
+                $myViewer.zoomArea(x, y, width, height);
+            }
+        </script>
+    </head>
+
+    <body>
+        <div>
+          <button onclick="zoomArea(1400, 60, 400, 160)">zoomArea(1400, 60, 400, 160)</button>&nbsp;&nbsp;
+          <button onclick="zoomArea(400, 600, 600, 400)">zoomArea(400, 600, 600, 400)</button>&nbsp;&nbsp;
+          <button onclick="zoomArea(1000, 1140, 430, 100)">zoomArea(1000, 1140, 430, 100)</button>&nbsp;&nbsp;
+          <button onclick="zoomArea(370, 2000, 300, 1040)">zoomArea(370, 2000, 300, 1040)</button>&nbsp;&nbsp;
+          <button onclick="zoomArea(1330, 2900, 1070, 330)">zoomArea(1330, 2900, 1070, 330)</button>
+        </div>
+        <div style="background-color:bisque; width: 1000px; height: 600px;" id="myDiv"></div>
+    </body>
+</html>
