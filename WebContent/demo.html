@@ -26,8 +26,14 @@
                   });
 
                 $myViewer.loadAnnotation();
-                $myViewer.loadImageFromURL('./images/test.tif');
-            })
+                $myViewer.loadImage({
+                    docId : '20262',
+                    formId : '',
+                    currentPage : '1',
+                    viewPage : '',
+                    totalPage : '4',
+                });
+            });
 
             function loadImageAndZoomArea()
             {
