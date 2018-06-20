@@ -178,10 +178,23 @@
                                    - imageContain - imageCanvas (z-index: 1)
             */
 
+            $(this).css({
+                width : $variable.viewerWidth,
+                height : $variable.viewerHeight
+            });
             $variable._wapperId = $(this).attr("id");
             let viewerPanelId = `${$variable._wapperId}-PANEL`;
             $(`#${$variable._wapperId}`).append(`<div id='${viewerPanelId}'></div>`);
 
+            $(`#${viewerPanelId}`).append(`
+              <canvas id="watermarkCanvas" style="width:${$variable.viewerWidth}; height:${$variable.viewerHeight}; position:absolute; z-index:2" width=${$variable.viewerWidth} height=${$variable.viewerHeight}></canvas>
+              <canvas id="tempCanvas" style="width:${$variable.viewerWidth}; height:${$variable.viewerHeight}; position:absolute; z-index:3" width=${$variable.viewerWidth} height=${$variable.viewerHeight}></canvas>
+            `);
+            $watermarkCanvas = document.getElementById('watermarkCanvas');
+            if ($variable.waterMarkText !== '') { $function._drawWaterMark();}
+            $tempCanvas = document.getElementById('tempCanvas');
+
+            /*
             $watermarkCanvas = document.createElement("canvas");
             $watermarkCanvas.setAttribute('style', `width:${$variable.viewerWidth}px; height:${$variable.viewerHeight}px; position:absolute; z-index:2;`);
             $watermarkCanvas.width = $variable.viewerWidth;
@@ -194,16 +207,16 @@
             $tempCanvas.width = $variable.viewerWidth;
             $tempCanvas.height = $variable.viewerHeight;
             document.getElementById(viewerPanelId).appendChild($tempCanvas);
+             */
 
             let imageDivId = `${$variable._wapperId}-IMAGEDIV`;
             $(`#${viewerPanelId}`).append(`<div id='${imageDivId}' style='position:absolute'></div>`);
             $imageCanvas = document.createElement("canvas");
-            $imageCanvas.setAttribute('style', 'width:10px; height:10px;');
             document.getElementById(imageDivId).appendChild($imageCanvas);
             $imageContain = $(`#${imageDivId}`);
             $imageContain.css(
             {
-                width: $variable.viewerWidth,
+                width:  $variable.viewerWidth,
                 height: $variable.viewerHeight,
                 paddingLeft: 0,
                 paddingRight: 0,
@@ -216,7 +229,6 @@
             let drawDivId = `${$variable._wapperId}-DRAWDIV`;
             $(`#${viewerPanelId}`).append(`<div id='${drawDivId}' style='position:absolute;'></div>`);
             $annotationCanvas = document.createElement("canvas");
-            $annotationCanvas.setAttribute('style', 'width:10px; height:10px;');
             document.getElementById(drawDivId).appendChild($annotationCanvas);
             $annotationContain = $(`#${drawDivId}`);
             $annotationContain.css({
@@ -228,6 +240,7 @@
                 "text-align": "center",
                 overflow: "auto"
             });
+
             $annotationScrollPaneAPI = $annotationContain.bind(
 				'jsp-scroll-y',
 				function(event, scrollPositionY) {
@@ -292,7 +305,9 @@
 
                             $function._clearTempCanvas();
 
-                            $function._zoomArea($function._toActualAxisX($mouseTrack.startX), $function._toActualAxisY($mouseTrack.startY), ($mouseTrack.endX - $mouseTrack.startX)/$variable._currentScale, ($mouseTrack.endY - $mouseTrack.startY)/$variable._currentScale);
+                            let x = $mouseTrack.startX < $mouseTrack.endX ? $mouseTrack.startX : $mouseTrack.endX;
+                            let y = $mouseTrack.startY < $mouseTrack.endY ? $mouseTrack.startY : $mouseTrack.endY;
+                            $function._zoomArea($function._toActualAxisX(x), $function._toActualAxisY(y), Math.abs($mouseTrack.endX - $mouseTrack.startX)/$variable._currentScale, Math.abs($mouseTrack.endY - $mouseTrack.startY)/$variable._currentScale);
                         }
                         break;
                     case MouseMode.Move :
@@ -401,17 +416,18 @@
             }
         });
 
-        $annoEditDialog.setContent("<div class='tab'>" +
-                    "<button class='tablinks' id='tabText'>Text</button>" +
-                    "<button class='tablinks' id='tabColor'>Color</button>" +
-                "</div>" +
-                "<div id='Text' class='tabcontent'>" +
-                "<textarea rows='4' cols='70' style='border-radius: 4px;' id='" + ($variable._wapperId + "_AnnoText") + "'></textarea>" +
-                "</div>" +
-                "<div id='Color' class='tabcontent'>" +
-                "Background color: <input name='bgColor' type='color' value='" + $variable.annotationDefaultBGColor +  "'/><br/>" +
-                "Text color: <input name='textColor' type='color' value='" + $variable.annotationDefaultTextColor +  "'/><br/>" +
-                "</div>");
+        $annoEditDialog.setContent(
+            `<div class='tab'>
+               <button class='tablinks' id='tabText'>Text</button>
+               <button class='tablinks' id='tabColor'>Color</button>
+             </div>
+             <div id='Text' class='tabcontent'>
+               <textarea rows='4' cols='70' style='border-radius: 4px;' id='${$variable._wapperId}_AnnoText'></textarea>
+             </div>
+             <div id='Color' class='tabcontent'>
+               "Background color: <input name='bgColor' type='color' value='${$variable.annotationDefaultBGColor}'/><br/>
+               "Text color: <input name='textColor' type='color' value='${$variable.annotationDefaultTextColor}'/><br/>
+             </div>`);
         $("#tabText").click(function (e) {
             $function._showTab(e, 'Text');
         });
@@ -475,6 +491,7 @@
                 $annotationCanvas.width = $variable._imageWidth ;
                 $annotationCanvas.height = $variable._imageHeight;
 
+
                 $variable._currentScale = $variable._minScale;
 
                 $variable._centerX = $variable._imageWidth / 2;
@@ -483,15 +500,15 @@
                 $image = new Image();
                 $image.onload = function () {
                     let t1 = performance.now();
-                    console.log("Load image decode tiff, took t1-t0 " + (t1 - t0) + " milliseconds.");
+                    console.log(`Load image decode tiff, took t1-t0 ${t1 - t0} milliseconds.`);
                     let ctx = $imageCanvas.getContext('2d');
                     ctx.drawImage($image, 0, 0);
                     if ($variable.displayAfterLoad) {
                         $function._calcDisplayModeScale();
                         $function._draw();
                     }
-                    var t2 = performance.now();
-                    console.log("Load image all done, took t2-t0 " + (t2 - t0) + " milliseconds.");
+                    let t2 = performance.now();
+                    console.log(`Load image all done, took t2-t0 ${t2 - t0} milliseconds.`);
 
                     // 如果要顯示 annotation, 就把 annotation 畫出來
                     if ($variable._showAnnotation) {
@@ -700,14 +717,9 @@
                         $variable._currentScale = $variable.viewerHeight / $variable._imageHeight;
                     break;
                 case DisplayMode.FitWindow:
-                    var scale1, scale2;
-                    if ($variable._rotate == 90 || $variable._rotate == 270 || $variable._rotate == -90 || $variable._rotate == -270) {
-                        scale1 = $variable.viewerWidth / $variable._imageWidth;
-                        scale2 = $variable.viewerHeight / $variable._imageHeight;
-                    } else {
-                        scale1 = $variable.viewerWidth / $variable._imageHeight;
-                        scale2 = $variable.viewerHeight / $variable._imageWidth;
-                    }
+                    let scale1, scale2;
+                    scale1 = $variable.viewerWidth / $variable._imageWidth;
+                    scale2 = $variable.viewerHeight / $variable._imageHeight;
                     $variable._currentScale = scale1 < scale2 ? scale1 : scale2;
                     break;
                 case DisplayMode.FullSize:
@@ -754,7 +766,7 @@
                 $imageScrollPaneAPI.scrollToY(0);
                 $annotationScrollPaneAPI.scrollToY(0);
             }
-            $annotationCanvas.setAttribute('style', 'width:' + $variable._canvasDisplayWidth + 'px; height:' + $variable._canvasDisplayHeight + 'px; margin:0px; z-index: 1');
+            $annotationCanvas.setAttribute('style', 'width:' + $variable._canvasDisplayWidth + 'px; height:' + $variable._canvasDisplayHeight + 'px; margin:0px; z-index: 4');
             $annotationScrollPaneAPI.reinitialise();
             $imageCanvas.setAttribute('style', 'width:' + $variable._canvasDisplayWidth + 'px; height:' + $variable._canvasDisplayHeight + 'px; margin:0px; z-index: 1');
             $imageScrollPaneAPI.reinitialise();
@@ -773,8 +785,6 @@
                     $annotationScrollPaneAPI.scrollToY($variable._centerY * $variable._currentScale - $variable.viewerHeight / 2);
                 }
             }
-
-            //console.log("getContentHeight():" + $imageScrollPaneAPI.getContentHeight() + ", getContentPositionY():" + $imageScrollPaneAPI.getContentPositionY());
         },
 
         _drawWaterMark: function() {
@@ -799,7 +809,7 @@
             if (clearCanvas){ ctx.clearRect(0, 0, $variable._imageWidth, $variable._imageHeight); }
             ctx.beginPath();
 
-            ctx.rect(x*$variable._currentScale  - $imageScrollPaneAPI.getContentPositionX(), y*$variable._currentScale - $imageScrollPaneAPI.getContentPositionY(), width*$variable._currentScale, height*$variable._currentScale);
+            ctx.rect(x*$variable._currentScale - $imageScrollPaneAPI.getContentPositionX(), y*$variable._currentScale - $imageScrollPaneAPI.getContentPositionY(), width*$variable._currentScale, height*$variable._currentScale);
             if (fill) {
                 ctx.fillStyle = $variable.zoomRectFillStyle;
                 ctx.fill();
