@@ -186,15 +186,6 @@
             let viewerPanelId = `${$variable._wapperId}-PANEL`;
             $(`#${$variable._wapperId}`).append(`<div id='${viewerPanelId}'></div>`);
 
-            $(`#${viewerPanelId}`).append(`
-              <canvas id="watermarkCanvas" style="width:${$variable.viewerWidth}; height:${$variable.viewerHeight}; position:absolute; z-index:2" width=${$variable.viewerWidth} height=${$variable.viewerHeight}></canvas>
-              <canvas id="tempCanvas" style="width:${$variable.viewerWidth}; height:${$variable.viewerHeight}; position:absolute; z-index:3" width=${$variable.viewerWidth} height=${$variable.viewerHeight}></canvas>
-            `);
-            $watermarkCanvas = document.getElementById('watermarkCanvas');
-            if ($variable.waterMarkText !== '') { $function._drawWaterMark();}
-            $tempCanvas = document.getElementById('tempCanvas');
-
-            /*
             $watermarkCanvas = document.createElement("canvas");
             $watermarkCanvas.setAttribute('style', `width:${$variable.viewerWidth}px; height:${$variable.viewerHeight}px; position:absolute; z-index:2;`);
             $watermarkCanvas.width = $variable.viewerWidth;
@@ -207,7 +198,6 @@
             $tempCanvas.width = $variable.viewerWidth;
             $tempCanvas.height = $variable.viewerHeight;
             document.getElementById(viewerPanelId).appendChild($tempCanvas);
-             */
 
             let imageDivId = `${$variable._wapperId}-IMAGEDIV`;
             $(`#${viewerPanelId}`).append(`<div id='${imageDivId}' style='position:absolute'></div>`);
