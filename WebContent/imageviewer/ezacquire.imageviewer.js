@@ -231,20 +231,18 @@
                 overflow: "auto"
             });
 
-            $annotationScrollPaneAPI = $annotationContain.bind(
-				'jsp-scroll-y',
-				function(event, scrollPositionY) {
+            $annotationScrollPaneAPI = $annotationContain
+                .bind('jsp-scroll-x', function(event, scrollPositionX) {
+                    $imageScrollPaneAPI.scrollToX(scrollPositionX);
+                })
+                .bind('jsp-scroll-y', function(event, scrollPositionY) {
                     $imageScrollPaneAPI.scrollToY(scrollPositionY);
-				}
-			)
-			.bind(
-				'jsp-scroll-x',
-				function(event, scrollPositionX) {
-					$imageScrollPaneAPI.scrollToX(scrollPositionX);
-				}
-			).jScrollPane({ showArrows: false }).data('jsp');
+				})
+                .jScrollPane({ showArrows: false }).data('jsp');
 
             $('canvas').bind("contextmenu", function (e) { return false; });
+            $(`#${imageDivId}`).bind("contextmenu", function (e) { return false; });
+            $(`#${drawDivId}`).bind("contextmenu", function (e) { return false; });
 
             $annotationCanvas.addEventListener('mousedown', function (e) {
                 $mouseTrack.startX = e.offsetX;
@@ -256,7 +254,7 @@
                 else if (e.button === 0) { $variable._mouseMode = MouseMode.Move; }
                 else { $variable._mouseMode = MouseMode.None; }
 
-                console.log("mouse btn:" + e.button + ", offsetY:" + e.offsetY + ", clientX:" + e.clientX + ", pageX:" + e.pageX);
+                console.log(`mouse btn:${e.button}, offsetX:${e.offsetX}, offsetY:${e.offsetY}`);
             });
 
             $annotationCanvas.addEventListener('mousemove', function (e) {
@@ -620,7 +618,6 @@
 
             $variable._displayMode = DisplayMode.FitHeight;
             $function._calcDisplayModeScale();
-
             $function._draw();
         },
 
@@ -630,7 +627,6 @@
 
             $variable._displayMode = DisplayMode.FitWidth;
             $function._calcDisplayModeScale();
-
             $function._draw();
         },
 
@@ -640,7 +636,6 @@
 
             $variable._displayMode = DisplayMode.FullSize;
             $function._calcDisplayModeScale();
-
             $function._draw();
         },
 
@@ -654,7 +649,7 @@
 
         scaleDown: function() {
             $variable._currentScale -= 0.05;
-            $variable._currentScale = $variable._currentScale <  $variable._minScale ? $variable._minScale : $variable._currentScale;
+            $variable._currentScale = $variable._currentScale < $variable._minScale ? $variable._minScale : $variable._currentScale;
 
             $function._calcInScale();
             $function._draw();
