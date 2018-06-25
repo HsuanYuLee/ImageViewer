@@ -12,19 +12,18 @@
         <script src="./imageviewer/jquery.jscrollpane.min.js"></script>
         <script src="./imageviewer/tingle.min.js"></script>
         <script type="text/javascript">
-            var $myViewer;
+            let $myViewer;
             $(function()
-              {
-                $myViewer = $('#myDiv').imageviewer(
-                  {
+            {
+                $myViewer = $('#myDiv').imageviewer({
                     viewerWidth: 1500,
                     viewerHeight: 600,
-                    displayAfterLoad: true,
-                    showAnnotationTool: true,
+                    imageServerUrl: 'http://localhost:8083/ImageViewer/imageServlet',
+                    initDisplayMode : 3,
                     waterMarkText: '中文 ImageViewer Demo',
-                    imageServerUrl: 'http://192.168.1.100/imgURL'
-                  });
-
+                    displayAfterLoad: true,
+                    showAnnotationTool: true
+                });
                 $myViewer.loadAnnotation();
                 $myViewer.loadImage({
                     docId : '20262',
@@ -34,12 +33,7 @@
                     totalPage : '4',
                 });
             });
-
-
-            function zoomArea(x, y, width , height)
-            {
-                $myViewer.zoomArea(x, y, width, height);
-            }
+            function zoomArea(x, y, width , height) { $myViewer.zoomArea(x, y, width, height); }
 
         </script>
     </head>
