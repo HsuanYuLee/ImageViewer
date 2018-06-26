@@ -12,40 +12,63 @@
         <script src="./imageviewer/jquery.jscrollpane.min.js"></script>
         <script src="./imageviewer/tingle.min.js"></script>
         <script type="text/javascript">
-            let $myViewer;
-            $(function()
-            {
-                $myViewer = $('#myDiv').imageviewer({
-                    viewerWidth: 1500,
-                    viewerHeight: 600,
-                    imageServerUrl: 'http://localhost:8083/ImageViewer/imageServlet',
-                    initDisplayMode : 0,
-                    waterMarkText: '中文 ImageViewer Demo',
-                    displayAfterLoad: true,
-                    showAnnotationTool: true
+            let $myViewer = null;
+            $(function() {
+                $('#login').click(function() {
+                    if ($myViewer === null) {
+                        $.ajax({
+                            type : 'POST',
+                            url : "imageServlet",
+                            data : {
+                                username : document.getElementById('username').value,
+                                password : document.getElementById('password').value
+                            },
+                            success : function () {
+                                $myViewer = $('#myDiv').imageviewer({
+                                    viewerWidth: 1500,
+                                    viewerHeight: 600,
+                                    imageServerUrl: 'http://localhost:8083/ImageViewer/imageServlet',
+                                    imageInfo : {
+                                        docId : '20262',
+                                        formId : '',
+                                        currentPage : '1',
+                                        viewPage : '',
+                                        totalPage : '4',
+                                    },
+                                    initDisplayMode : 0,
+                                    waterMarkText: '中文 ImageViewer Demo',
+                                    displayAfterLoad: true,
+                                    showAnnotationTool: true
+                                });
+                                $myViewer.loadAnnotation();
+                            }
+                        });
+                    }
                 });
-                $myViewer.loadAnnotation();
-                $myViewer.loadImage({
-                    docId : '20262',
-                    formId : '',
-                    currentPage : '1',
-                    viewPage : '',
-                    totalPage : '4',
-                });
-            });
-            function zoomArea(x, y, width , height) { $myViewer.zoomArea(x, y, width, height); }
 
+                $('#logout').click(function () {
+                    location.reload();
+                })
+            });
+            //function zoomArea(x, y, width , height) { $myViewer.zoomArea(x, y, width, height); }
         </script>
     </head>
 
     <body>
-        <div>
-          <button onclick="zoomArea(1400, 60, 400, 160)">zoomArea(1400, 60, 400, 160)</button>&nbsp;&nbsp;
-          <button onclick="zoomArea(400, 600, 600, 400)">zoomArea(400, 600, 600, 400)</button>&nbsp;&nbsp;
-          <button onclick="zoomArea(1000, 1140, 430, 100)">zoomArea(1000, 1140, 430, 100)</button>&nbsp;&nbsp;
-          <button onclick="zoomArea(370, 2000, 300, 1040)">zoomArea(370, 2000, 300, 1040)</button>&nbsp;&nbsp;
-          <button onclick="zoomArea(1330, 2900, 1070, 330)">zoomArea(1330, 2900, 1070, 330)</button>
-        </div>
-        <div style="background-color:bisque;" id="myDiv"></div>
+    <div>
+        Username : <input id="username" type="text"> Password : <input id="password" type="password">
+        <button id="login">login</button>
+        <button id="logout">logout</button>
+    </div>
+    <div>
+        <!--
+        <button onclick="zoomArea(1400, 60, 400, 160)">zoomArea(1400, 60, 400, 160)</button>&nbsp;&nbsp;
+        <button onclick="zoomArea(400, 600, 600, 400)">zoomArea(400, 600, 600, 400)</button>&nbsp;&nbsp;
+        <button onclick="zoomArea(1000, 1140, 430, 100)">zoomArea(1000, 1140, 430, 100)</button>&nbsp;&nbsp;
+        <button onclick="zoomArea(370, 2000, 300, 1040)">zoomArea(370, 2000, 300, 1040)</button>&nbsp;&nbsp;
+        <button onclick="zoomArea(1330, 2900, 1070, 330)">zoomArea(1330, 2900, 1070, 330)</button>
+        -->
+    </div>
+    <div style="background-color:bisque;" id="myDiv"></div>
     </body>
 </html>
