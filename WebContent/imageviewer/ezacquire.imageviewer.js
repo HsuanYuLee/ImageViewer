@@ -1,93 +1,51 @@
-(function ($)
-	{
-	    let $imageViewer = null;
+(function ($) {
+    let $imageContain = null;
+    let $imageCanvas = null;
+    let $imageScrollPaneAPI = null;
 
-	    let $imageContain = null;
-	    let $imageCanvas = null;
-	    let $imageScrollPaneAPI = null;
+    let $annotationContain = null;
+    let $annotationCanvas = null;
+    let $annotationScrollPaneAPI = null;
 
-	    let $annotationContain = null;
-	    let $annotationCanvas = null;
-	    let $annotationScrollPaneAPI = null;
+    let $watermarkCanvas = null;
 
-	    let $watermarkCanvas = null;
+    let $tempContain = null;
+    let $tempCanvas = null;
+    let $tempScrollPaneAPI = null;
 
-	    let $tempContain = null;
-	    let $tempCanvas = null;
-	    let $tempScrollPaneAPI = null;
+    let $annoEditDialog = null;
 
-	    let $annoEditDialog = null;
-
-	    let $image;
+    let $image;
 
     // $annoArray 用來放 annotation
     // 每個 annotation 的內容為
     // id: annotation 編號, page: annotation 所在的頁碼, x: 左上角 x 座標, y: 左上角 y 座標, width: 寬度, height: 高度,
     // type: 形狀, text: 文字內容, bgcolor: 底色, fontcolor: 文字顏色, linecolor: 外框顏色
 
-        let $annoArray = null;
+    let $annoArray = null;
 
-        let $toolBtns = {
-            id: {
-                btnFitHeight: "btnFitHeight",
-                btnFitWidth: "btnFitWidth",
-                btnFullSize: "btnFullSize",
-                btnZoomIn: "btnZoomIn",
-                btnZoomOut: "btnZoomOut",
-                btnRotateCW: "btnRotateCW",
-                btnRotateCCW: "btnRotateCCW",
-                btnPrint: "btnPrint",
-                btnShowAnno: "btnShowAnno",
-                btnHideAnno: "btnHideAnno",
-                btnEditAnno: "btnEditAnno",
-                btnDelAnno: "btnDelAnno",
-                btnPrev: "btnPrev",
-                btnNext: "btnNext",
-                btnUnMax: "btnUnMax",
-                btnMax: "btnMax"
-            },
-            css: {
-                btnFitHeight: "fa-arrows-v",
-                btnFitWidth: "fa-arrows-h",
-                btnFullSize: "fa-arrows",
-                btnZoomIn: "fa-search-plus",
-                btnZoomOut: "fa-search-minus",
-                btnRotateCW: "fa-repeat",
-                btnRotateCCW: "fa-undo",
-                btnPrint: "fa-print",
-                btnShowAnno: "fa-eye",
-                btnHideAnno: "fa-eye-slash",
-                btnEditAnno: "fa-pencil-square-o",
-                btnDelAnno: "fa-trash-o",
-                btnPrev: "fa-arrow-left",
-                btnNext: "fa-arrow-right",
-                btnUnMax: "fa-window-restore",
-                btnMax: "fa-window-maximize"
-            },
-            titles: {
-                btnFitHeight: "最適高度",
-                btnFitWidth: "最適寬度",
-                btnFullSize: "原圖",
-                btnZoomIn: "放大",
-                btnZoomOut: "縮小",
-                btnRotateCW: "旋轉",
-                btnRotateCCW: "旋轉",
-                btnPrint: "列印",
-                btnShowAnno: "顯示註記",
-                btnHideAnno: "隱藏註記",
-                btnEditAnno: "新增註記",
-                btnDelAnno: "刪除註記",
-                btnPrev: "上一頁",
-                btnNext: "下一頁",
-                btnUnMax: "還原",
-                btnMax: "最大化"
-            }
-        };
+    let $toolsBtn = {
+        FitHeight: { id: "btnFitHeight", css: "fa-arrows-v",        show: true, title: "最適高度"  },
+        FitWidth:  { id: "btnFitWidth",  css: "fa-arrows-h",        show: true, title: "最適寬度"  },
+        FullSize:  { id: "btnFullSize",  css: "fa-arrows",          show: true, title: "原圖"     },
+        ZoomIn:    { id: "btnZoomIn",    css: "fa-search-plus",     show: true, title: "放大"     },
+        ZoomOut:   { id: "btnZoomOut",   css: "fa-search-minus",    show: true, title: "縮小"     },
+        RotateCW:  { id: "btnRotateCW",  css: "fa-repeat",          show: true, title: "旋轉"     },
+        RotateCCW: { id: "btnRotateCCW", css: "fa-undo",            show: true, title: "旋轉"     },
+        Print:     { id: "btnPrint",     css: "fa-print",           show: true, title: "列印"     },
+        ShowAnno:  { id: "btnShowAnno",  css: "fa-eye",             show: false,title: "顯示註記"  },
+        HideAnno:  { id: "btnHideAnno",  css: "fa-eye-slash",       show: true, title: "隱藏註記"  },
+        EditAnno:  { id: "btnEditAnno",  css: "fa-pencil-square-o", show: true, title: "新增註記"  },
+        DelAnno:   { id: "btnDelAnno",   css: "fa-trash-o",         show: true, title: "刪除註記"  },
+        Prev:      { id: "btnPrev",      css: "fa-arrow-left",      show: true, title: "上一頁"    },
+        Next:      { id: "btnNext",      css: "fa-arrow-right",     show: true, title: "下一頁"    },
+        UnMax:     { id: "btnUnMax",     css: "fa-window-restore",  show: true, title: "還原"     },
+        Max:       { id: "btnMax",       css: "fa-window-maximize", show: false,title: "最大化"    },
+    };
+
     let DisplayMode = { FitWidth: 0, FitHeight: 1, FitWindow: 2, FullSize: 3 };
     let MouseMode = {None: 0, Zoom: 1, Move: 2};
     let AnnoMode = {None: 0, Edit: 1, Del: 2};
-
-    let $imageInfo = { docId: "", formId: "", currentPage: "", viewPage: "", totalPage: "" };
 
     let $mouseTrack = { startX: 0, startY: 0, endX: 0, endY: 0};
 
@@ -96,14 +54,14 @@
         viewerHeight: 600,
         //外部傳入影像資訊
         imageServerUrl: '',
-        imageInfo : { docId: "", formId: "", currentPage: "", viewPage: "", totalPage: "" },
+        imageInfo : [{ docId: "", formId: "", currentPage: "", viewPage: "", totalPage: "" }],
         //DisplayMode : { FitWidth: 0, FitHeight: 1, FitWindow: 2, FullSize: 3 };
         initDisplayMode : 3,
         waterMarkText : '',
         displayAfterLoad : true,
         // 沒有 tool 就沒有 annotation
         showAnnotationTool: true
-        };
+    };
 
     let $variable = {
         waterMarkFont: 'bold 60pt Calibri',
@@ -114,7 +72,6 @@
         zoomRectFillStyle: 'rgba(255, 255, 125, 0.4)',
         zoomRectLineWidth: 2,
         zoomRectLineColor: '#ff0000',
-
         annotationDefaultBGColor: '#ffff7d',
         annotationDefaultTextColor: '#000000',
         annotationDefaultLineColor: '#ff0000',
@@ -141,11 +98,8 @@
 
         // 記錄影像的長寬
         _imageWidth: 1, _imageHeight: 1,
-
         _centerX: 1, _centerY: 1,
-
         _shiftX: 0, _shiftY: 0,
-
         _starPtX: 0, _starPtY: 0,
 
         _canvasDisplayWidth: 0, _canvasDisplayHeight: 0,
@@ -160,370 +114,263 @@
         _mouseMode: MouseMode.None,
 
         _annoMode: AnnoMode.None,
-
         _newX: 0, _newY: 0
     };
+//======================================================================================================================
+//imageviewer - singleDoc
 
     $.fn.imageviewer = function (options) {
-        //起始Function
-        this.init = function (options) {
-            //參數設定 extend:將$settings用options OverWrite
-            $importVariable = $.extend($importVariable, options);
-            $variable._showAnnotation = $importVariable.showAnnotationTool;
 
-            $imageViewer = this;
-
-            /*  myId - toolbar
-                     - viewerPanel - annotationContain - annotationCanvas (z-index: 4, 所有滑鼠在這一層 listener)
-                                   - tempCanvas (z-index: 3)
-                                   - watermarkCanvas (z-index: 2)
-                                   - imageContain - imageCanvas (z-index: 1)
-            */
+        $importVariable = $.extend($importVariable, options);
+        $variable._showAnnotation = $importVariable.showAnnotationTool;
+        /*  myId - toolbar
+                 - viewerPanel - annotationContain - annotationCanvas (z-index: 4, 所有滑鼠在這一層 listener)
+                               - tempCanvas (z-index: 3)
+                               - watermarkCanvas (z-index: 2)
+                               - imageContain - imageCanvas (z-index: 1)
+        */
+//---------------------------------------------------------------------------------------------------------------------
+//render toolBar
+        $variable._wapperId = $(this).attr("id");
+        if ($variable.showToolBar) {
+            $(`#${$variable._wapperId}`).append(`<div id="dummy-tool-btn-warp" style="background-color:darkgray;"></div>`);
+            if (!$importVariable.showAnnotationTool) {
+                $toolsBtn.ShowAnno.show = false;
+                $toolsBtn.HideAnno.show = false;
+                $toolsBtn.EditAnno.show = false;
+                $toolsBtn.DelAnno.show = false;
+            }
+            for (let i in $toolsBtn) {
+                $(`#dummy-tool-btn-warp`).append(`
+                <button type="button" id="${$variable._wapperId}-${$toolsBtn[i].id}" class="tbtn btn-primary" title="${$toolsBtn[i].title}" ><i class="fa ${$toolsBtn[i].css} fa-1x"></i></button>`);
+                if (!$toolsBtn[i].show) {$(`#${$variable._wapperId}-${$toolsBtn[i].id}`).css({display : 'none'});}
+            }
+            $(`#${$variable._wapperId}-btnNext`).after(`<span><input type='text' maxlength=3 style='width:24px;' id=dummy-currentPage><span id=dummy-totalPage>/</span></span>`);
+            $(`#${$variable._wapperId}-btnUnMax`).css({float : 'right'});
+            $(`#${$variable._wapperId}-btnMax`).css({float : 'right'});
+        }
+//render viewer
+        $(`#${$variable._wapperId}`).css({ width : $importVariable.viewerWidth, height : $importVariable.viewerHeight }).append(`
+        <div id="${$variable._wapperId}-PANEL">
+            <canvas id="watermarkCanvas" width="${$importVariable.viewerWidth}" height="${$importVariable.viewerHeight}" style="width:${$importVariable.viewerWidth}px; height: ${$importVariable.viewerHeight}px; position: absolute; z-index: 2;"></canvas>
+            <div id="${$variable._wapperId}-IMAGEDIV" style="width:${$importVariable.viewerWidth}px; height: ${$importVariable.viewerHeight}px; padding: 0; text-align: center; position: absolute; z-index: 1;">
+                <canvas id="imageCanvas"></canvas>
+            </div>
+            <div id="${$variable._wapperId}-TEMPDIV" style="width:${$importVariable.viewerWidth}px; height: ${$importVariable.viewerHeight}px; padding: 0; text-align: center; position: absolute; z-index: 3">
+                <canvas id="tempCanvas"></canvas>
+            </div>
+            <div id="${$variable._wapperId}-DRAWDIV" style="width:${$importVariable.viewerWidth}px; height: ${$importVariable.viewerHeight}px; padding: 0; text-align: center; position: absolute; z-index: 4">
+                <canvas id="annotationCanvas"></canvas>
+            </div>
+        </div>`);
 //----------------------------------------------------------------------------------------------------------------------
-//Initialize Main
-            $variable._wapperId = $(this).attr("id");
-            let viewerPanelId = `${$variable._wapperId}-PANEL`;
-            $(`#${$variable._wapperId}`)
-                .css({ width : $importVariable.viewerWidth, height : $importVariable.viewerHeight })
-                .append(`
-                <div id="${$variable._wapperId}-PANEL">
-                    <canvas id="watermarkCanvas" width="${$importVariable.viewerWidth}" height="${$importVariable.viewerHeight}" style="width:${$importVariable.viewerWidth}px; height: ${$importVariable.viewerHeight}px; position: absolute; z-index: 2;"></canvas>
-                    <div id="${$variable._wapperId}-IMAGEDIV" style="width:${$importVariable.viewerWidth}px; height: ${$importVariable.viewerHeight}px; padding: 0; text-align: center; position: absolute; z-index: 1;">
-                        <canvas id="imageCanvas"></canvas>
-                    </div>
-                    <div id="${$variable._wapperId}-TEMPDIV" style="width:${$importVariable.viewerWidth}px; height: ${$importVariable.viewerHeight}px; padding: 0; text-align: center; position: absolute; z-index: 3">
-                        <canvas id="tempCanvas"></canvas>
-                    </div>
-                    <div id="${$variable._wapperId}-DRAWDIV" style="width:${$importVariable.viewerWidth}px; height: ${$importVariable.viewerHeight}px; padding: 0; text-align: center; position: absolute; z-index: 4">
-                        <canvas id="annotationCanvas"></canvas>
-                    </div>
-                </div>
-                `);
+//set viewer component
+        $function.loadImage($importVariable);
+        $("#dummy-currentPage").val(`${$importVariable.imageInfo.currentPage}`);
+        $("#dummy-totalPage").html(` /${$importVariable.imageInfo.totalPage}`);
+        if ($importVariable.imageInfo.currentPage === '1') {$(`#${$variable._wapperId}-btnPrev`).prop('disabled',true);}
 
+        $watermarkCanvas = document.getElementById("watermarkCanvas");
+        if ($importVariable.waterMarkText !== '') { $function._drawWaterMark();}
+
+        $imageCanvas = document.getElementById("imageCanvas");
+        $imageContain = $(`#${$variable._wapperId}-IMAGEDIV`);
+        $imageScrollPaneAPI = $imageContain.jScrollPane({ showArrows: false }).data('jsp');
+
+        $tempCanvas = document.getElementById('tempCanvas');
+        $tempContain = $(`#${$variable._wapperId}-TEMPDIV`);
+        $tempScrollPaneAPI = $tempContain
+            .bind('jsp-scroll-x', function(event, scrollPositionX) {
+                $imageScrollPaneAPI.scrollToX(scrollPositionX);
+            })
+            .bind('jsp-scroll-y', function(event, scrollPositionY) {
+                $imageScrollPaneAPI.scrollToY(scrollPositionY);
+            })
+            .jScrollPane({
+                showArrows: false,
+                horizontalDragMaxWidth: 0,
+                verticalDragMaxHeight: 0
+            })
+            .data('jsp');
+
+        $annotationCanvas = document.getElementById('annotationCanvas');
+        $annotationContain = $(`#${$variable._wapperId}-DRAWDIV`);
+        $annotationScrollPaneAPI = $annotationContain
+            .bind('jsp-scroll-x', function(event, scrollPositionX) {
+                $imageScrollPaneAPI.scrollToX(scrollPositionX);
+            })
+            .bind('jsp-scroll-y', function(event, scrollPositionY) {
+                $imageScrollPaneAPI.scrollToY(scrollPositionY);
+            })
+            .jScrollPane({ showArrows: false })
+            .data('jsp');
 //----------------------------------------------------------------------------------------------------------------------
-//set component
-            $watermarkCanvas = document.getElementById("watermarkCanvas");
-            if ($importVariable.waterMarkText !== '') { $function._drawWaterMark();}
-
-            $imageCanvas = document.getElementById("imageCanvas");
-            $imageContain = $(`#${$variable._wapperId}-IMAGEDIV`);
-            $imageScrollPaneAPI = $imageContain.jScrollPane({ showArrows: false }).data('jsp');
-
-            $tempCanvas = document.getElementById('tempCanvas');
-            $tempContain = $(`#${$variable._wapperId}-TEMPDIV`);
-            $tempScrollPaneAPI = $tempContain
-                .bind('jsp-scroll-x', function(event, scrollPositionX) {
-                    $imageScrollPaneAPI.scrollToX(scrollPositionX);
-                })
-                .bind('jsp-scroll-y', function(event, scrollPositionY) {
-                    $imageScrollPaneAPI.scrollToY(scrollPositionY);
-                })
-                .jScrollPane({
-                    showArrows: false,
-                    horizontalDragMaxWidth: 0,
-                    verticalDragMaxHeight: 0
-                })
-                .data('jsp');
-
-            $annotationCanvas = document.getElementById('annotationCanvas');
-            $annotationContain = $(`#${$variable._wapperId}-DRAWDIV`);
-            $annotationScrollPaneAPI = $annotationContain
-                .bind('jsp-scroll-x', function(event, scrollPositionX) {
-                    $imageScrollPaneAPI.scrollToX(scrollPositionX);
-                })
-                .bind('jsp-scroll-y', function(event, scrollPositionY) {
-                    $imageScrollPaneAPI.scrollToY(scrollPositionY);
-                })
-                .jScrollPane({ showArrows: false })
-                .data('jsp');
-
-           /*
-           $(this).css({ width : $importVariable.viewerWidth, height : $importVariable.viewerHeight });
-           $variable._wapperId = $(this).attr("id");
-           let viewerPanelId = `${$variable._wapperId}-PANEL`;
-           $(`#${$variable._wapperId}`).append(`<div id='${viewerPanelId}'></div>`);
-
-           $watermarkCanvas = document.createElement("canvas");
-           $watermarkCanvas.setAttribute('style', `width:${$importVariable.viewerWidth}px; height:${$importVariable.viewerHeight}px; position:absolute; z-index:2;`);
-           $watermarkCanvas.width = $importVariable.viewerWidth;
-           $watermarkCanvas.height = $importVariable.viewerHeight;
-           document.getElementById(viewerPanelId).appendChild($watermarkCanvas);
-           if ($importVariable.waterMarkText !== '') { $function._drawWaterMark();}
-
-
-           let imageDivId = `${$variable._wapperId}-IMAGEDIV`;
-           $(`#${viewerPanelId}`).append(`<div id='${imageDivId}' style='position:absolute'></div>`);
-           $imageCanvas = document.createElement("canvas");
-           document.getElementById(imageDivId).appendChild($imageCanvas);
-           $imageContain = $(`#${imageDivId}`);
-           $imageContain.css({
-               width:  $importVariable.viewerWidth,
-               height: $importVariable.viewerHeight,
-               paddingLeft: 0,
-               paddingRight: 0,
-               "z-index": 1,
-               "text-align": "center",
-               overflow: "auto"
-           });
-           $imageScrollPaneAPI = $imageContain.jScrollPane({ showArrows: false }).data('jsp');
-
-           let tempDivId = `${$variable._wapperId}-TEMPDIV`;
-           $(`#${viewerPanelId}`).append(`<div id='${tempDivId}' style='position:absolute'></div>`);
-           $tempCanvas = document.createElement('canvas');
-           document.getElementById(tempDivId).appendChild($tempCanvas);
-           $tempContain = $(`#${tempDivId}`);
-           $tempContain.css({
-               width:  $importVariable.viewerWidth,
-               height: $importVariable.viewerHeight,
-               paddingLeft: 0,
-               paddingRight: 0,
-               "z-index": 3,
-               "text-align": "center",
-               overflow: "auto"
-           });
-
-           $tempScrollPaneAPI = $tempContain
-               .bind('jsp-scroll-x', function(event, scrollPositionX) {
-                   $imageScrollPaneAPI.scrollToX(scrollPositionX);
-               })
-               .bind('jsp-scroll-y', function(event, scrollPositionY) {
-                   $imageScrollPaneAPI.scrollToY(scrollPositionY);
-               })
-               .jScrollPane({
-                   showArrows: false,
-                   horizontalDragMaxWidth: 0,
-                   verticalDragMaxHeight: 0
-               })
-               .data('jsp');
-
-
-
-            let drawDivId = `${$variable._wapperId}-DRAWDIV`;
-            $(`#${viewerPanelId}`).append(`<div id='${drawDivId}' style='position:absolute;'></div>`);
-            $annotationCanvas = document.createElement("canvas");
-            document.getElementById(drawDivId).appendChild($annotationCanvas);
-            $annotationContain = $(`#${drawDivId}`);
-            $annotationContain.css({
-                width: $importVariable.viewerWidth,
-                height: $importVariable.viewerHeight,
-                paddingLeft: 0,
-                paddingRight: 0,
-                "z-index": 4,
-                "text-align": "center",
-                overflow: "auto"
+//set toolbar component
+        if ($variable.showToolBar) {
+            $(`#${$variable._wapperId}-btnFitHeight`).click(function () {
+                $function.fitHeight();
             });
-            $annotationScrollPaneAPI = $annotationContain
-                .bind('jsp-scroll-x', function(event, scrollPositionX) {
-                    $imageScrollPaneAPI.scrollToX(scrollPositionX);
-                })
-                .bind('jsp-scroll-y', function(event, scrollPositionY) {
-                    $imageScrollPaneAPI.scrollToY(scrollPositionY);
-				})
-                .jScrollPane({ showArrows: false })
-                .data('jsp');
-                 */
-//----------------------------------------------------------------------------------------------------------------------
-//Initialize ToolBar
-            if ($variable.showToolBar) {
-                $(`#${viewerPanelId}`).before($function._renderToolBar());
+            $(`#${$variable._wapperId}-btnFitWidth`).click(function () {
+                $function.fitWidth();
+            });
+            $(`#${$variable._wapperId}-btnFullSize`).click(function () {
+                $function.fullSize();
+            });
+            $(`#${$variable._wapperId}-btnZoomIn`).click(function () {
+                $function.scaleUp();
+            });
+            $(`#${$variable._wapperId}-btnZoomOut`).click(function () {
+                $function.scaleDown();
+            });
+            $(`#${$variable._wapperId}-btnRotateCW`).click(function () {
+                $function.rorateCW();
+            });
+            $(`#${$variable._wapperId}-btnRotateCCW`).click(function () {
+                $function.rorateCCW();
+            });
 
-                $(`#${$variable._wapperId}-btnFitHeight`).click(function () {
-                    $function.fitHeight();
-                });
-                $(`#${$variable._wapperId}-btnFitWidth`).click(function () {
-                    $function.fitWidth();
-                });
-                $(`#${$variable._wapperId}-btnFullSize`).click(function () {
-                    $function.fullSize();
-                });
-                $(`#${$variable._wapperId}-btnZoomIn`).click(function () {
-                    $function.scaleUp();
-                });
-                $(`#${$variable._wapperId}-btnZoomOut`).click(function () {
-                    $function.scaleDown();
-                });
-                $(`#${$variable._wapperId}-btnRotateCW`).click(function () {
-                    $function.rorateCW();
-                });
-                $(`#${$variable._wapperId}-btnRotateCCW`).click(function () {
-                    $function.rorateCCW();
-                });
-                $(`#${$variable._wapperId}-btnShowAnno`).click(function () {
-                    $variable._showAnnotation = true;
+            $(`#${$variable._wapperId}-btnShowAnno`).click(function () {
+                $variable._showAnnotation = true;
+                $(`#${$variable._wapperId}-btnShowAnno`).hide();
+                $(`#${$variable._wapperId}-btnHideAnno`).show();
+                $function._redrawAnnotationCanvas();
+            });
 
-                    // todo
-                    // 1. 切換 btn 的顯示與否
-                    $(`#${$variable._wapperId}-btnShowAnno`).hide();
-                    $(`#${$variable._wapperId}-btnHideAnno`).show();
-                    // 2. 把 annotation 畫上
-                    $function._redrawAnnotationCanvas();
-                });
-                $(`#${$variable._wapperId}-btnHideAnno`).click(function () {
-                    $variable._showAnnotation = false;
+            $(`#${$variable._wapperId}-btnHideAnno`).click(function () {
+                $variable._showAnnotation = false;
+                $(`#${$variable._wapperId}-btnHideAnno`).hide();
+                $(`#${$variable._wapperId}-btnShowAnno`).show();
+                $function._clearAnnotationCanvas();
+            });
 
-                    // todo
-                    // 1. 切換 btn 的顯示與否
-                    $(`#${$variable._wapperId}-btnHideAnno`).hide();
-                    $(`#${$variable._wapperId}-btnShowAnno`).show();
-                    // 2. 把 annotation 清掉
-                    $function._clearAnnotationCanvas();
-                });
-                $(`#${$variable._wapperId}-btnEditAnno`).click(function () {
-                    if ($variable._annoMode !== AnnoMode.Edit) {
-                        $variable._annoMode = AnnoMode.Edit;
-                        $(`#${$variable._wapperId}-btnEditAnno`).addClass("btn-active").removeClass("btn-default");
-                    } else {
-                        $variable._annoMode = AnnoMode.None;
-                        $(`#${$variable._wapperId}-btnEditAnno`).addClass("btn-default").removeClass("btn-active");
-                    }
-                });
-                $(`#${$variable._wapperId}-btnPrev`).click(function () {
+            $(`#${$variable._wapperId}-btnEditAnno`).click(function () {
+                if ($variable._annoMode !== AnnoMode.Edit) {
+                    $variable._annoMode = AnnoMode.Edit;
+                    $(`#${$variable._wapperId}-btnEditAnno`).addClass("btn-active").removeClass("btn-default");
+                } else {
+                    $variable._annoMode = AnnoMode.None;
+                    $(`#${$variable._wapperId}-btnEditAnno`).addClass("btn-default").removeClass("btn-active");
+                }
+            });
 
-                    $importVariable.imageInfo.currentPage--;
+            $(`#${$variable._wapperId}-btnPrev`).click(function () {
+                $importVariable.imageInfo.currentPage--;
+                $function.loadImage($importVariable);
+                $("#dummy-currentPage").val(`${$importVariable.imageInfo.currentPage}`);
+                $("#dummy-totalPage").html(` /${$importVariable.imageInfo.totalPage}`);
+                if ($importVariable.imageInfo.currentPage === 1) {
+                    $(`#${$variable._wapperId}-btnPrev`).prop('disabled',true);
+                }
+                $(`#${$variable._wapperId}-btnNext`).prop('disabled',false);
+            });
 
-                    $function.loadImage($importVariable.imageInfo);
-                    $("#dummy-currentPage").val(`${$importVariable.imageInfo.currentPage}`);
-                    $("#dummy-totalPage").html(` /${$importVariable.imageInfo.totalPage}`);
-                    if ($importVariable.imageInfo.currentPage === 1) {
-                        $(`#${$variable._wapperId}-btnPrev`).prop('disabled',true);
-                    }
-                    $(`#${$variable._wapperId}-btnNext`).prop('disabled',false);
-                });
-                $(`#${$variable._wapperId}-btnNext`).click(function () {
+            $(`#${$variable._wapperId}-btnNext`).click(function () {
+                $importVariable.imageInfo.currentPage++;
+                $function.loadImage($importVariable);
+                $("#dummy-currentPage").val(`${$importVariable.imageInfo.currentPage}`);
+                $("#dummy-totalPage").html(` /${$importVariable.imageInfo.totalPage}`);
+                if ($importVariable.imageInfo.currentPage === parseInt($importVariable.imageInfo.totalPage)) {
+                    $(`#${$variable._wapperId}-btnNext`).prop('disabled',true);
+                }
+                $(`#${$variable._wapperId}-btnPrev`).prop('disabled',false);
+            });
 
-                    $importVariable.imageInfo.currentPage++;
+            $(`#${$variable._wapperId}-btnUnMax`).click(function () {
+                $importVariable.viewerWidth /= 2;
+                $(`#myDiv`).empty().imageviewer();
+                $(`#${$variable._wapperId}-btnUnMax`).hide();
+                $(`#${$variable._wapperId}-btnMax`).show();
+            });
 
-                    $function.loadImage($importVariable.imageInfo);
-                    $("#dummy-currentPage").val(`${$importVariable.imageInfo.currentPage}`);
-                    $("#dummy-totalPage").html(` /${$importVariable.imageInfo.totalPage}`);
-                    if ($importVariable.imageInfo.currentPage === parseInt($importVariable.imageInfo.totalPage)) {
-                        $(`#${$variable._wapperId}-btnNext`).prop('disabled',true);
-                    }
-                    $(`#${$variable._wapperId}-btnPrev`).prop('disabled',false);
-                });
-                $(`#${$variable._wapperId}-btnUnMax`).click(function () {
+            $(`#${$variable._wapperId}-btnMax`).click(function () {
+                $importVariable.viewerWidth *= 2;
+                $(`#myDiv`).empty().imageviewer();
+                $(`#${$variable._wapperId}-btnMax`).hide();
+                $(`#${$variable._wapperId}-btnUnMax`).show();
+            });
 
-                    $importVariable.viewerWidth /= 2;
+            $("#dummy-currentPage").keypress(function (e) {
+                if(e.which === 13) {
+                    let currentPage = $("#dummy-currentPage").val();
+                    if (currentPage >= 1 && currentPage <= $importVariable.imageInfo.totalPage) {
+                        $importVariable.imageInfo.currentPage = currentPage;
+                        $function.loadImage($importVariable);
+                        $("#dummy-currentPage").val(`${$importVariable.imageInfo.currentPage}`);
+                        $("#dummy-totalPage").html(` /${$importVariable.imageInfo.totalPage}`);
+                        $(`#${$variable._wapperId}-btnPrev`).prop('disabled',false);
+                        $(`#${$variable._wapperId}-btnNext`).prop('disabled',false);
 
-                    $(`#myDiv`).empty().imageviewer();
-                    $myViewer.loadAnnotation();
-                    $(`#${$variable._wapperId}-btnUnMax`).hide();
-                    $(`#${$variable._wapperId}-btnMax`).show();
-                });
-                $(`#${$variable._wapperId}-btnMax`).click(function () {
-
-                    $importVariable.viewerWidth *= 2;
-
-                    $(`#myDiv`).empty().imageviewer();
-                    $myViewer.loadAnnotation();
-                    $(`#${$variable._wapperId}-btnUnMax`).hide();
-                    $(`#${$variable._wapperId}-btnMax`).show();
-                });
-
-                $("#dummy-currentPage").keypress(function (e) {
-                    if(e.which === 13) {
-                        let currentPage = $("#dummy-currentPage").val();
-                        if (currentPage >= 1 && currentPage <= $importVariable.imageInfo.totalPage) {
-                            $importVariable.imageInfo.currentPage = currentPage;
-                            $function.loadImage($importVariable.imageInfo);
-                            $("#dummy-currentPage").val(`${$importVariable.imageInfo.currentPage}`);
-                            $("#dummy-totalPage").html(` /${$importVariable.imageInfo.totalPage}`);
-                            $(`#${$variable._wapperId}-btnPrev`).prop('disabled',false);
-                            $(`#${$variable._wapperId}-btnNext`).prop('disabled',false);
-
-                            switch (currentPage) {
-                                case '1' :
-                                    $(`#${$variable._wapperId}-btnPrev`).prop('disabled',true);
-                                    break;
-                                case $importVariable.imageInfo.totalPage :
-                                    $(`#${$variable._wapperId}-btnNext`).prop('disabled',true);
-                                    break;
-                            }
-                        }else {
-                            alert("error");
-                            $("#dummy-currentPage").val(1);
-                            $importVariable.imageInfo.currentPage = $("#dummy-currentPage").val();
-                            $function.loadImage($importVariable.imageInfo);
-                            $("#dummy-currentPage").val(`${$importVariable.imageInfo.currentPage}`);
-                            $("#dummy-totalPage").html(` /${$importVariable.imageInfo.totalPage}`);
-                            $(`#${$variable._wapperId}-btnPrev`).prop('disabled',true);
-                            $(`#${$variable._wapperId}-btnNext`).prop('disabled',false);
+                        switch (currentPage) {
+                            case '1' :
+                                $(`#${$variable._wapperId}-btnPrev`).prop('disabled',true);
+                                break;
+                            case $importVariable.imageInfo.totalPage :
+                                $(`#${$variable._wapperId}-btnNext`).prop('disabled',true);
+                                break;
                         }
+                    }else {
+                        alert("error");
+                        $("#dummy-currentPage").val(1);
+                        $importVariable.imageInfo.currentPage = $("#dummy-currentPage").val();
+                        $function.loadImage($importVariable);
+                        $("#dummy-currentPage").val(`${$importVariable.imageInfo.currentPage}`);
+                        $("#dummy-totalPage").html(` /${$importVariable.imageInfo.totalPage}`);
+                        $(`#${$variable._wapperId}-btnPrev`).prop('disabled',true);
+                        $(`#${$variable._wapperId}-btnNext`).prop('disabled',false);
                     }
-                })
-
-            }
-//----------------------------------------------------------------------------------------------------------------------
-//Initialize Doc
-            $function.loadImage($importVariable.imageInfo);
-            $("#dummy-currentPage").val(`${$importVariable.imageInfo.currentPage}`);
-            $("#dummy-totalPage").html(` /${$importVariable.imageInfo.totalPage}`);
-            if ($importVariable.imageInfo.currentPage === '1') {
-                $(`#${$variable._wapperId}-btnPrev`).prop('disabled',true);
-            }
+                }
+            })
+        }
 //----------------------------------------------------------------------------------------------------------------------
 //Mouse Event
-            $annotationContain.bind("contextmenu", function (e) { return false; });
-            $annotationCanvas.addEventListener('mousedown', function (e) {
+        $annotationContain.bind("contextmenu", function (e) { return false; });
+        $annotationCanvas.addEventListener('mousedown', function (e) {
 
-                $mouseTrack.startX = e.offsetX;   $mouseTrack.startY = e.offsetY;
-                $mouseTrack.endX = e.offsetX;     $mouseTrack.endY = e.offsetY;
+            $mouseTrack.startX = e.offsetX;   $mouseTrack.startY = e.offsetY;
 
-                if (e.button === 2) { $variable._mouseMode = MouseMode.Zoom; }
-                else if (e.button === 0) { $variable._mouseMode = MouseMode.Move; }
-                else { $variable._mouseMode = MouseMode.None; }
+            if (e.button === 2) { $variable._mouseMode = MouseMode.Zoom; }
+            else if (e.button === 0) { $variable._mouseMode = MouseMode.Move; }
+            else { $variable._mouseMode = MouseMode.None; }
+        });
 
-                console.log(`mouse btn:${e.button}, offsetX:${e.offsetX}, offsetY:${e.offsetY}`);
-            });
+        $annotationCanvas.addEventListener('mousemove', function (e) {
+            switch ($variable._mouseMode) {
+                case MouseMode.Zoom :
+                    $function._drawRectangleInTempCanvas($mouseTrack.startX, $mouseTrack.startY, e.offsetX-$mouseTrack.startX, e.offsetY-$mouseTrack.startY, true, false);
+                    break;
+                case MouseMode.Move :
+                    $variable._newX = $annotationScrollPaneAPI.getContentPositionX() - (e.offsetX - $mouseTrack.startX);
+                    $variable._newY = $annotationScrollPaneAPI.getContentPositionY() - (e.offsetY - $mouseTrack.startY);
 
-            $annotationCanvas.addEventListener('mousemove', function (e) {
-                switch ($variable._mouseMode) {
-                    case MouseMode.Zoom :
-                        $function._drawRectangleInTempCanvas($mouseTrack.startX, $mouseTrack.startY, e.offsetX-$mouseTrack.startX, e.offsetY-$mouseTrack.startY, true, false);
-                        console.log(`$mouseTrack.startX:${$mouseTrack.startX}, $mouseTrack.startY:${$mouseTrack.startY}`);
-                        console.log(`width:${e.offsetX-$mouseTrack.startX}, height:${e.offsetY-$mouseTrack.startY}`);
-                        break;
-                    case MouseMode.Move :
-                        $variable._newX = $annotationScrollPaneAPI.getContentPositionX() - (e.offsetX - $mouseTrack.startX);
-                        $variable._newY = $annotationScrollPaneAPI.getContentPositionY() - (e.offsetY - $mouseTrack.startY);
+                    $imageScrollPaneAPI.scrollTo($variable._newX,$variable._newY);
+                    $annotationScrollPaneAPI.scrollTo($variable._newX,$variable._newY);
+                    break;
+            }
+        });
 
-                        $imageScrollPaneAPI.scrollTo($variable._newX,$variable._newY);
-                        $annotationScrollPaneAPI.scrollTo($variable._newX,$variable._newY);
-                        break;
-                }
-            });
-
-            $annotationCanvas.addEventListener('mouseup', function (e) {
-                switch ($variable._mouseMode) {
-                    case MouseMode.Zoom :
-                        if ($variable._annoMode === AnnoMode.Edit) {
-                            $annoEditDialog.open();
-                        } else {
-
-                            $mouseTrack.endX = e.offsetX;    $mouseTrack.endY = e.offsetY;
-
-                            $function._clearTempCanvas();
-
-                            let x = $mouseTrack.startX < $mouseTrack.endX ? $mouseTrack.startX : $mouseTrack.endX;
-                            let y = $mouseTrack.startY < $mouseTrack.endY ? $mouseTrack.startY : $mouseTrack.endY;
-                            $function._zoomArea(x/$variable._currentScale, y/$variable._currentScale, Math.abs($mouseTrack.endX - $mouseTrack.startX)/$variable._currentScale, Math.abs($mouseTrack.endY - $mouseTrack.startY)/$variable._currentScale);
-                        }
-                        break;
-                    case MouseMode.Move :
-                        $imageScrollPaneAPI.scrollTo($variable._newX,$variable._newY);
-                        $annotationScrollPaneAPI.scrollTo($variable._newX,$variable._newY);
-                        break;
-                }
-                $variable._mouseMode = MouseMode.None;
-            });
+        $annotationCanvas.addEventListener('mouseup', function (e) {
+            switch ($variable._mouseMode) {
+                case MouseMode.Zoom :
+                    if ($variable._annoMode === AnnoMode.Edit) {
+                        $annoEditDialog.open();
+                    } else {
+                        $mouseTrack.endX = e.offsetX;
+                        $mouseTrack.endY = e.offsetY;
+                        $function._clearTempCanvas();
+                        let x = $mouseTrack.startX < $mouseTrack.endX ? $mouseTrack.startX : $mouseTrack.endX;
+                        let y = $mouseTrack.startY < $mouseTrack.endY ? $mouseTrack.startY : $mouseTrack.endY;
+                        $function._zoomArea(x/$variable._currentScale, y/$variable._currentScale, Math.abs($mouseTrack.endX - $mouseTrack.startX)/$variable._currentScale, Math.abs($mouseTrack.endY - $mouseTrack.startY)/$variable._currentScale);
+                    }
+                    break;
+                case MouseMode.Move :
+                    $imageScrollPaneAPI.scrollTo($variable._newX,$variable._newY);
+                    $annotationScrollPaneAPI.scrollTo($variable._newX,$variable._newY);
+                    break;
+            }
+            $variable._mouseMode = MouseMode.None;
+        });
 //----------------------------------------------------------------------------------------------------------------------
-        };
-
-        this.init(options);
-
-        //註冊 function
-        $imageViewer = $.extend($imageViewer, $function);
-
+    /*
         // Annotation 編輯的對話框
         if ($annoEditDialog === null) {
             $annoEditDialog = new tingle.modal({
@@ -534,10 +381,10 @@
                 cssClass: ['custom-class-1', 'custom-class-2'],
                 onOpen: function() {
                     console.log('modal open');
-                },
+                    },
                 onClose: function() {
                     console.log('modal closed');
-                },
+                    },
                 beforeClose: function() {
                     // here's goes some logic
                     // e.g. save content before closing the modal
@@ -546,18 +393,18 @@
                 }
             });
 
-            $annoEditDialog.setContent(
-                `<div class='tab'>
-               <button class='tablinks' id='tabText'>Text</button>
-               <button class='tablinks' id='tabColor'>Color</button>
-             </div>
-             <div id='Text' class='tabcontent'>
-               <textarea rows='4' cols='70' style='border-radius: 4px;' id='${$variable._wapperId}_AnnoText'></textarea>
-             </div>
-             <div id='Color' class='tabcontent'>
-               "Background color: <input name='bgColor' type='color' value='${$variable.annotationDefaultBGColor}'/><br/>
-               "Text color: <input name='textColor' type='color' value='${$variable.annotationDefaultTextColor}'/><br/>
-             </div>`);
+            $annoEditDialog.setContent(`
+            <div class='tab'>
+              <button class='tablinks' id='tabText'>Text</button>
+              <button class='tablinks' id='tabColor'>Color</button>
+            </div>
+            <div id='Text' class='tabcontent'>
+              <textarea rows='4' cols='70' style='border-radius: 4px;' id='${$variable._wapperId}_AnnoText'></textarea>
+            </div>
+            <div id='Color' class='tabcontent'>
+              "Background color: <input name='bgColor' type='color' value='${$variable.annotationDefaultBGColor}'/><br/>
+              "Text color: <input name='textColor' type='color' value='${$variable.annotationDefaultTextColor}'/><br/>
+            </div>`);
             $("#tabText").click(function (e) {
                 $function._showTab(e, 'Text');
             });
@@ -575,18 +422,26 @@
                 $annoEditDialog.close();
             });
         }
-        return $imageViewer;
+    */
     };
+//======================================================================================================================
+//imageviewer2 - multiDoc
+    $.fn.imageviewer2 = function (options) {
+
+        $importVariable = $.extend($importVariable, options);
+        $variable._showAnnotation = $importVariable.showAnnotationTool;
+
+        console.log(options);
+    };
+//======================================================================================================================
 //----------------------------------------------------------------------------------------------------------------------
 //Functions
     let $function = {
         loadImage: function(docObject) {
             $variable._rotate = 0;
 
-            if (docObject.docId !== $imageInfo.docId && $importVariable.showAnnotationTool) {
-                $function.loadAnnotation();
-            }
-            let url = `${$importVariable.imageServerUrl}?docId=${docObject.docId}&currentPage=${docObject.currentPage}&type=tiff`;
+            if (docObject.showAnnotationTool) { $function.loadAnnotation(); }
+            let url = `${docObject.imageServerUrl}?docId=${docObject.imageInfo.docId}&currentPage=${docObject.imageInfo.currentPage}&type=tiff`;
             console.log(url);
 
             let xhr = new XMLHttpRequest();
@@ -603,8 +458,8 @@
                 $annotationCanvas.width = $variable._imageWidth ;    $annotationCanvas.height = $variable._imageHeight;
                 $variable._centerX = $variable._imageWidth / 2;      $variable._centerY = $variable._imageHeight / 2;
 
-                let scale_w = $importVariable.viewerWidth / $variable._imageWidth;
-                let scale_h = $importVariable.viewerHeight / $variable._imageHeight;
+                let scale_w = docObject.viewerWidth / $variable._imageWidth;
+                let scale_h = docObject.viewerHeight / $variable._imageHeight;
                 $variable._minScale = scale_h < scale_w ? scale_h : scale_w;
 
                 $image = new Image();
@@ -614,8 +469,8 @@
                     console.log(`Load image decode tiff, took t1-t0 ${t1 - t0} milliseconds.`);
                     let ctx = $imageCanvas.getContext('2d');
                     ctx.drawImage($image, 0, 0);
-                    if ($importVariable.displayAfterLoad) {
-                        $function._calcDisplayModeScale($importVariable.initDisplayMode);
+                    if (docObject.displayAfterLoad) {
+                        $function._calcDisplayModeScale(docObject.initDisplayMode);
                         $function._draw();
                     }
                     let t2 = performance.now();
@@ -626,12 +481,11 @@
                         $function._redrawAnnotationCanvas();
                     }
                 };
-
             };
             xhr.send();
 
-            $("#dummy-currentPage").val(`${$imageInfo.currentPage}`);
-            $("#dummy-totalPage").text(`/${$imageInfo.totalPage}`);
+            $("#dummy-currentPage").val(`${docObject.imageInfo.currentPage}`);
+            $("#dummy-totalPage").text(`/${docObject.imageInfo.totalPage}`);
             return true;
         },
 
@@ -642,57 +496,6 @@
                 { id: 0, page: 1, x: 100, y: 200, width: 100, height: 100, type: 'RECT', text: '這是中文註記', bgcolor: '#ffff7d', fontcolor: '#000000', linecolor: '#ff0000' },
                 { id: 0, page: 1, x: 500, y: 500, width: 200, height: 200, type: 'RECT', text: 'This is annotation', bgcolor: '#ffff7d', fontcolor: '#000000', linecolor: '#ff0000' }
             ];
-        },
-
-        //產生工具列
-        _renderToolBar: function() {
-            let btnFitHeight = $function._renderButton($toolBtns.id.btnFitHeight);
-            let btnFitWidth  = $function._renderButton($toolBtns.id.btnFitWidth);
-            let btnFullSize  = $function._renderButton($toolBtns.id.btnFullSize);
-            let btnZoomIn    = $function._renderButton($toolBtns.id.btnZoomIn);
-            let btnZoomOut   = $function._renderButton($toolBtns.id.btnZoomOut);
-            let btnRotateCW  = $function._renderButton($toolBtns.id.btnRotateCW);
-            let btnRotateCCW = $function._renderButton($toolBtns.id.btnRotateCCW);
-            let btnPrint     = $function._renderButton($toolBtns.id.btnPrint);
-            let btnShowAnno  = $function._renderButton($toolBtns.id.btnShowAnno, false);
-            let btnHideAnno  = $function._renderButton($toolBtns.id.btnHideAnno);
-            let btnEditAnno  = $function._renderButton($toolBtns.id.btnEditAnno);
-            let btnDelAnno   = $function._renderButton($toolBtns.id.btnDelAnno);
-            let btnPrev      = $function._renderButton($toolBtns.id.btnPrev);
-            let btnNext      = $function._renderButton($toolBtns.id.btnNext);
-            let btnUnMax     = $function._renderButton($toolBtns.id.btnUnMax);
-            let btnMax       = $function._renderButton($toolBtns.id.btnMax, false);
-            /*
-                        if (!$settings.showAnnotation) {
-                            $settings.showAnnTool = false;
-                        }*/
-
-            if ($importVariable.showAnnotationTool) { $variable._showAnnotation = true; }
-            else {
-                btnHideAnno = btnShowAnno = btnEditAnno = btnDelAnno = "";
-                $variable._showAnnotation = false;
-
-            }
-
-            if (!$variable.showPrint) {btnPrint = "";}
-
-            /*
-            if (!$settings.showMaxBtn) {
-                btnMax = btnUnMax = "";
-            }*/
-
-            let newId = 'dummy';
-            let preId = 'dummy2';
-            let page = `<span><input type='text' maxlength=3 style='width:24px;' id=${newId}-currentPage><span id=${newId}-totalPage>/</span></span>`;
-
-            return "<div id='" + newId + "-tool-btn-warp' style='background-color:darkgray;'>" + btnFitHeight + btnFitWidth + btnFullSize + btnZoomIn + btnZoomOut + btnRotateCW + btnRotateCCW +  btnPrint + btnShowAnno +   btnHideAnno + btnEditAnno + btnDelAnno + btnPrev + btnNext + page + "<span style='float:right'>" + btnUnMax + btnMax + "</span>" + "</div>";
-        },
-        // display:none
-        _renderButton: function(btnId, show) {
-            show = show === undefined ? true : show;
-
-            let space = (btnId === "btnMax" || btnId === "btnUnMax") ? "" : "&nbsp;";
-            return "<button type='button' class='tbtn btn-primary' title='" + $toolBtns.titles[btnId] + "' id='" + $variable._wapperId + '-' + btnId + "'" + (show ? " " : " style='display:none;'") + "><i class='fa " + $toolBtns.css[btnId] + " fa-1x'></i></button>" + (show ? space : "");
         },
 
         fitHeight: function() {
@@ -756,8 +559,6 @@
                 $function._drawRectangleInTempCanvas(x, y, width, height, true, true);
             }
         },
-
-
 
         _calcDisplayModeScale: function(displayMode) {
             switch (displayMode) {
@@ -958,5 +759,4 @@
             evt.currentTarget.className += " active";
         }
     }
-    //=====================================================================================================================
 })(jQuery);

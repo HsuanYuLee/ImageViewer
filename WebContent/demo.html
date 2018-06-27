@@ -12,10 +12,10 @@
         <script src="./imageviewer/jquery.jscrollpane.min.js"></script>
         <script src="./imageviewer/tingle.min.js"></script>
         <script type="text/javascript">
-            let $myViewer = null;
             $(function() {
+                let log = false;
                 $('#login').click(function() {
-                    if ($myViewer === null) {
+                    if (!log) {
                         $.ajax({
                             type : 'POST',
                             url : "imageServlet",
@@ -24,7 +24,8 @@
                                 password : document.getElementById('password').value
                             },
                             success : function () {
-                                $myViewer = $('#myDiv').imageviewer({
+
+                                $('#myDiv').imageviewer({
                                     viewerWidth: 1500,
                                     viewerHeight: 600,
                                     imageServerUrl: 'http://localhost:8083/ImageViewer/imageServlet',
@@ -40,15 +41,30 @@
                                     displayAfterLoad: true,
                                     showAnnotationTool: true
                                 });
-                                $myViewer.loadAnnotation();
+
+
+                                /*
+                                $('#myDiv').imageviewer2({
+                                    viewerWidth: 1500,
+                                    viewerHeight: 600,
+                                    imageServerUrl: 'http://localhost:8083/ImageViewer/imageServlet',
+                                    imageInfo : [
+                                        {docId : '20262', formId : '', currentPage : '1', viewPage : '', totalPage : '4'},
+                                        {docId : '27895', formId : '', currentPage : '1', viewPage : '', totalPage : '4'}
+                                    ],
+                                    initDisplayMode : 0,
+                                    waterMarkText: '中文 ImageViewer Demo',
+                                    displayAfterLoad: true,
+                                    showAnnotationTool: true
+                                });
+                                */
                             }
                         });
+                        log = true;
                     }
                 });
 
-                $('#logout').click(function () {
-                    location.reload();
-                })
+                $('#logout').click(function () {location.reload();})
             });
             //function zoomArea(x, y, width , height) { $myViewer.zoomArea(x, y, width, height); }
         </script>
