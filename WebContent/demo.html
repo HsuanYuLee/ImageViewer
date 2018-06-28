@@ -16,6 +16,7 @@
                 let log = false;
                 $('#login').click(function() {
                     if (!log) {
+                        let T1 = performance.now()
                         $.ajax({
                             type : 'POST',
                             url : "imageServlet",
@@ -24,24 +25,17 @@
                                 password : document.getElementById('password').value
                             },
                             success : function () {
-
+                                console.log(`login time : ${performance.now() - T1}`);
                                 $('#myDiv').imageviewer({
                                     viewerWidth: 1500,
                                     viewerHeight: 600,
                                     imageServerUrl: 'http://localhost:8083/ImageViewer/imageServlet',
-                                    imageInfo : {
-                                        docId : '20262',
-                                        formId : '',
-                                        currentPage : '1',
-                                        viewPage : '',
-                                        totalPage : '4',
-                                    },
+                                    imageInfo : [{ docId : '20262', formId : '', currentPage : '1', viewPage : '', totalPage : '4' }],
                                     initDisplayMode : 0,
                                     waterMarkText: '中文 ImageViewer Demo',
                                     displayAfterLoad: true,
                                     showAnnotationTool: true
                                 });
-
 
                                 /*
                                 $('#myDiv').imageviewer2({
@@ -63,7 +57,6 @@
                         log = true;
                     }
                 });
-
                 $('#logout').click(function () {location.reload();})
             });
             //function zoomArea(x, y, width , height) { $myViewer.zoomArea(x, y, width, height); }
