@@ -64,20 +64,27 @@
     };
 
     let $viewers = [{
-        //最小縮放比例
         _minScale: 0.2,
         _currentScale: 1,
-        // 原圖長寬
         _oriImageWidth : null,  _oriImageHeight : null,
-        // 記錄影像的長寬
         _imageWidth: 1,         _imageHeight: 1,
         _centerX: 1,            _centerY: 1,
         _canvasDisplayWidth: 0, _canvasDisplayHeight: 0,
         _newX: 0,               _newY: 0,
-
         _rotate: 0,
         _displayMode: DisplayMode.FullSize,
-
+        _mouseMode: MouseMode.None,
+        _annoMode: AnnoMode.None,
+    }, {
+        _minScale: 0.2,
+        _currentScale: 1,
+        _oriImageWidth : null,  _oriImageHeight : null,
+        _imageWidth: 1,         _imageHeight: 1,
+        _centerX: 1,            _centerY: 1,
+        _canvasDisplayWidth: 0, _canvasDisplayHeight: 0,
+        _newX: 0,               _newY: 0,
+        _rotate: 0,
+        _displayMode: DisplayMode.FullSize,
         _mouseMode: MouseMode.None,
         _annoMode: AnnoMode.None,
     }];
@@ -110,11 +117,10 @@
 //imageviewer - singleDoc
 
     $.fn.imageviewer = function (options) {
-
-        let viewNo = 0;
-
         $importVariable = $.extend($importVariable, options);
-        $variable._showAnnotation = $importVariable.showAnnotationTool;
+
+        for (let viewNo in $importVariable.imageInfo){
+            $variable._showAnnotation = $importVariable.showAnnotationTool;
         /*  myId - toolbar
                  - viewerPanel - annotationContain - annotationCanvas (z-index: 4, 所有滑鼠在這一層 listener)
                                - tempCanvas (z-index: 3)
@@ -123,196 +129,196 @@
         */
 //---------------------------------------------------------------------------------------------------------------------
 //render toolBar
-        $variable._wapperId = `${$(this).attr("id")}`;
-        if ($variable.showToolBar) {
-            $(`#${$variable._wapperId}`).append(`<div id="dummy-tool-btn-warp-${viewNo}" style="background-color:darkgray;"></div>`);
-            if (!$importVariable.showAnnotationTool) {
-                $toolsBtn.ShowAnno.show = false;
-                $toolsBtn.HideAnno.show = false;
-                $toolsBtn.EditAnno.show = false;
-                $toolsBtn.DelAnno.show = false;
+            $variable._wapperId = `${$(this).attr("id")}`;
+            if ($variable.showToolBar) {
+                $(`#${$variable._wapperId}`).append(`<div id="dummy-tool-btn-warp-${viewNo}" style="background-color:darkgray; width:${$importVariable.viewerWidth}px;"></div>`);
+                if (!$importVariable.showAnnotationTool) {
+                    $toolsBtn.ShowAnno.show = false;
+                    $toolsBtn.HideAnno.show = false;
+                    $toolsBtn.EditAnno.show = false;
+                    $toolsBtn.DelAnno.show = false;
+                }
+                for (let i in $toolsBtn) {
+                    $(`#dummy-tool-btn-warp-${viewNo}`).append(`
+                    <button type="button" id="${$variable._wapperId}-${$toolsBtn[i].id}-${viewNo}" class="tbtn btn-primary" title="${$toolsBtn[i].title}" ><i class="fa ${$toolsBtn[i].css} fa-1x"></i></button>`);
+                    if (!$toolsBtn[i].show) {$(`#${$variable._wapperId}-${$toolsBtn[i].id}-${viewNo}`).css({display : 'none'});}
+                }
+                $(`#${$variable._wapperId}-btnNext-${viewNo}`).after(`<span><input type='text' maxlength=3 style='width:24px;' id=dummy-currentPage-${viewNo}><span id=dummy-totalPage-${viewNo}>/</span></span>`);
+                $(`#${$variable._wapperId}-btnUnMax-${viewNo}`).css({float : 'right'});
+                $(`#${$variable._wapperId}-btnMax-${viewNo}`).css({float : 'right'});
             }
-            for (let i in $toolsBtn) {
-                $(`#dummy-tool-btn-warp-${viewNo}`).append(`
-                <button type="button" id="${$variable._wapperId}-${$toolsBtn[i].id}-${viewNo}" class="tbtn btn-primary" title="${$toolsBtn[i].title}" ><i class="fa ${$toolsBtn[i].css} fa-1x"></i></button>`);
-                if (!$toolsBtn[i].show) {$(`#${$variable._wapperId}-${$toolsBtn[i].id}-${viewNo}`).css({display : 'none'});}
-            }
-            $(`#${$variable._wapperId}-btnNext-${viewNo}`).after(`<span><input type='text' maxlength=3 style='width:24px;' id=dummy-currentPage-${viewNo}><span id=dummy-totalPage-${viewNo}>/</span></span>`);
-            $(`#${$variable._wapperId}-btnUnMax-${viewNo}`).css({float : 'right'});
-            $(`#${$variable._wapperId}-btnMax-${viewNo}`).css({float : 'right'});
-        }
 //render viewer
-        $(`#${$variable._wapperId}`).css({ width : $importVariable.viewerWidth, height : $importVariable.viewerHeight }).append(`
-        <div id="${$variable._wapperId}-PANEL-${viewNo}">
-            <canvas id="watermarkCanvas-${viewNo}" width="${$importVariable.viewerWidth}" height="${$importVariable.viewerHeight}" style="width:${$importVariable.viewerWidth}px; height: ${$importVariable.viewerHeight}px; position: absolute; z-index: 2;"></canvas>
-            <div id="${$variable._wapperId}-IMAGEDIV-${viewNo}" style="width:${$importVariable.viewerWidth}px; height: ${$importVariable.viewerHeight}px; padding: 0; text-align: center; position: absolute; z-index: 1;">
-                <canvas id="imageCanvas-${viewNo}"></canvas>
-            </div>
-            <div id="${$variable._wapperId}-TEMPDIV-${viewNo}" style="width:${$importVariable.viewerWidth}px; height: ${$importVariable.viewerHeight}px; padding: 0; text-align: center; position: absolute; z-index: 3">
-                <canvas id="tempCanvas-${viewNo}"></canvas>
-            </div>
-            <div id="${$variable._wapperId}-DRAWDIV-${viewNo}" style="width:${$importVariable.viewerWidth}px; height: ${$importVariable.viewerHeight}px; padding: 0; text-align: center; position: absolute; z-index: 4">
-                <canvas id="annotationCanvas-${viewNo}"></canvas>
-            </div>
-        </div>`);
+            $(`#${$variable._wapperId}`).css('width',$importVariable.viewerWidth).append(`
+            <div id="${$variable._wapperId}-PANEL-${viewNo}" style="width:${viewNo}px; height:${$importVariable.viewerHeight}px;">
+                <canvas id="watermarkCanvas-${viewNo}" width="${$importVariable.viewerWidth}" height="${$importVariable.viewerHeight}" style="width:${$importVariable.viewerWidth}px; height: ${$importVariable.viewerHeight}px; position: absolute; z-index: 2;"></canvas>
+                <div id="${$variable._wapperId}-IMAGEDIV-${viewNo}" style="width:${$importVariable.viewerWidth}px; height: ${$importVariable.viewerHeight}px; padding: 0; text-align: center; position: absolute; z-index: 1;">
+                    <canvas id="imageCanvas-${viewNo}"></canvas>
+                </div>
+                <div id="${$variable._wapperId}-TEMPDIV-${viewNo}" style="width:${$importVariable.viewerWidth}px; height: ${$importVariable.viewerHeight}px; padding: 0; text-align: center; position: absolute; z-index: 3">
+                    <canvas id="tempCanvas-${viewNo}"></canvas>
+                </div>
+                <div id="${$variable._wapperId}-DRAWDIV-${viewNo}" style="width:${$importVariable.viewerWidth}px; height: ${$importVariable.viewerHeight}px; padding: 0; text-align: center; position: absolute; z-index: 4">
+                    <canvas id="annotationCanvas-${viewNo}"></canvas>
+                </div>
+            </div>`);
 //----------------------------------------------------------------------------------------------------------------------
 //set viewer component
-        $watermarkCanvas[viewNo] = document.getElementById(`watermarkCanvas-${viewNo}`);
-        if ($importVariable.waterMarkText !== '') { $function._drawWaterMark(viewNo);}
+            $watermarkCanvas[viewNo] = document.getElementById(`watermarkCanvas-${viewNo}`);
+            if ($importVariable.waterMarkText !== '') { $function._drawWaterMark(viewNo);}
 
-        $imageCanvas[viewNo] = document.getElementById(`imageCanvas-${viewNo}`);
-        $imageContain[viewNo] = $(`#${$variable._wapperId}-IMAGEDIV-${viewNo}`);
-        $imageScrollPaneAPI[viewNo] = $imageContain[viewNo].jScrollPane({ showArrows: false }).data('jsp');
+            $imageCanvas[viewNo] = document.getElementById(`imageCanvas-${viewNo}`);
+            $imageContain[viewNo] = $(`#${$variable._wapperId}-IMAGEDIV-${viewNo}`);
+            $imageScrollPaneAPI[viewNo] = $imageContain[viewNo].jScrollPane({ showArrows: false }).data('jsp');
 
-        $tempCanvas[viewNo] = document.getElementById(`tempCanvas-${viewNo}`);
-        $tempContain[viewNo] = $(`#${$variable._wapperId}-TEMPDIV-${viewNo}`);
-        $tempScrollPaneAPI[viewNo] = $tempContain[viewNo]
-            .bind('jsp-scroll-x', function(event, scrollPositionX) {
-                $imageScrollPaneAPI[viewNo].scrollToX(scrollPositionX);
-            })
-            .bind('jsp-scroll-y', function(event, scrollPositionY) {
-                $imageScrollPaneAPI[viewNo].scrollToY(scrollPositionY);
-            })
-            .jScrollPane({
-                showArrows: false,
-                horizontalDragMaxWidth: 0,
-                verticalDragMaxHeight: 0
-            })
-            .data('jsp');
+            $tempCanvas[viewNo] = document.getElementById(`tempCanvas-${viewNo}`);
+            $tempContain[viewNo] = $(`#${$variable._wapperId}-TEMPDIV-${viewNo}`);
+            $tempScrollPaneAPI[viewNo] = $tempContain[viewNo]
+                .bind('jsp-scroll-x', function(event, scrollPositionX) {
+                    $imageScrollPaneAPI[viewNo].scrollToX(scrollPositionX);
+                })
+                .bind('jsp-scroll-y', function(event, scrollPositionY) {
+                    $imageScrollPaneAPI[viewNo].scrollToY(scrollPositionY);
+                })
+                .jScrollPane({
+                    showArrows: false,
+                    horizontalDragMaxWidth: 0,
+                    verticalDragMaxHeight: 0
+                })
+                .data('jsp');
 
-        $annotationCanvas[viewNo] = document.getElementById(`annotationCanvas-${viewNo}`);
-        $annotationContain[viewNo] = $(`#${$variable._wapperId}-DRAWDIV-${viewNo}`);
-        $annotationScrollPaneAPI[viewNo] = $annotationContain[viewNo]
-            .bind('jsp-scroll-x', function(event, scrollPositionX) {
-                $imageScrollPaneAPI[viewNo].scrollToX(scrollPositionX);
-            })
-            .bind('jsp-scroll-y', function(event, scrollPositionY) {
-                $imageScrollPaneAPI[viewNo].scrollToY(scrollPositionY);
-            })
-            .jScrollPane({ showArrows: false })
-            .data('jsp');
+            $annotationCanvas[viewNo] = document.getElementById(`annotationCanvas-${viewNo}`);
+            $annotationContain[viewNo] = $(`#${$variable._wapperId}-DRAWDIV-${viewNo}`);
+            $annotationScrollPaneAPI[viewNo] = $annotationContain[viewNo]
+                .bind('jsp-scroll-x', function(event, scrollPositionX) {
+                    $imageScrollPaneAPI[viewNo].scrollToX(scrollPositionX);
+                })
+                .bind('jsp-scroll-y', function(event, scrollPositionY) {
+                    $imageScrollPaneAPI[viewNo].scrollToY(scrollPositionY);
+                })
+                .jScrollPane({ showArrows: false })
+                .data('jsp');
 
-        $function.loadImage($importVariable, viewNo);
-        $(`#dummy-currentPage-${viewNo}`).val(`${$importVariable.imageInfo[viewNo].currentPage}`);
-        $(`#dummy-totalPage-${viewNo}`).html(` /${$importVariable.imageInfo[viewNo].totalPage}`);
-        if ($importVariable.imageInfo[viewNo].currentPage === '1') {$(`#${$variable._wapperId}-btnPrev-${viewNo}`).prop('disabled',true);}
+            $function.loadImage($importVariable, viewNo);
+            $(`#dummy-currentPage-${viewNo}`).val(`${$importVariable.imageInfo[viewNo].currentPage}`);
+            $(`#dummy-totalPage-${viewNo}`).html(` /${$importVariable.imageInfo[viewNo].totalPage}`);
+            if ($importVariable.imageInfo[viewNo].currentPage === '1') {$(`#${$variable._wapperId}-btnPrev-${viewNo}`).prop('disabled',true);}
 //----------------------------------------------------------------------------------------------------------------------
 //set toolbar component
-        if ($variable.showToolBar) {
-            $(`#${$variable._wapperId}-btnFitHeight-${viewNo}`).click(function () {
-                $function.fitHeight(viewNo);
-            });
-            $(`#${$variable._wapperId}-btnFitWidth-${viewNo}`).click(function () {
-                $function.fitWidth(viewNo);
-            });
-            $(`#${$variable._wapperId}-btnFullSize-${viewNo}`).click(function () {
-                $function.fullSize(viewNo);
-            });
-            $(`#${$variable._wapperId}-btnZoomIn-${viewNo}`).click(function () {
-                $function.scaleUp(viewNo);
-            });
-            $(`#${$variable._wapperId}-btnZoomOut-${viewNo}`).click(function () {
-                $function.scaleDown(viewNo);
-            });
-            $(`#${$variable._wapperId}-btnRotateCW-${viewNo}`).click(function () {
-                $function.rorateCW(viewNo);
-            });
-            $(`#${$variable._wapperId}-btnRotateCCW-${viewNo}`).click(function () {
-                $function.rorateCCW(viewNo);
-            });
+            if ($variable.showToolBar) {
+                $(`#${$variable._wapperId}-btnFitHeight-${viewNo}`).click(function () {
+                    $function.fitHeight(viewNo);
+                });
+                $(`#${$variable._wapperId}-btnFitWidth-${viewNo}`).click(function () {
+                    $function.fitWidth(viewNo);
+                });
+                $(`#${$variable._wapperId}-btnFullSize-${viewNo}`).click(function () {
+                    $function.fullSize(viewNo);
+                });
+                $(`#${$variable._wapperId}-btnZoomIn-${viewNo}`).click(function () {
+                    $function.scaleUp(viewNo);
+                });
+                $(`#${$variable._wapperId}-btnZoomOut-${viewNo}`).click(function () {
+                    $function.scaleDown(viewNo);
+                });
+                $(`#${$variable._wapperId}-btnRotateCW-${viewNo}`).click(function () {
+                    $function.rorateCW(viewNo);
+                });
+                $(`#${$variable._wapperId}-btnRotateCCW-${viewNo}`).click(function () {
+                    $function.rorateCCW(viewNo);
+                });
 
-            $(`#${$variable._wapperId}-btnShowAnno-${viewNo}`).click(function () {
-                $variable._showAnnotation = true;
-                $(`#${$variable._wapperId}-btnShowAnno-${viewNo}`).hide();
-                $(`#${$variable._wapperId}-btnHideAnno-${viewNo}`).show();
-                $function._redrawAnnotationCanvas(viewNo);
-            });
+                $(`#${$variable._wapperId}-btnShowAnno-${viewNo}`).click(function () {
+                    $variable._showAnnotation = true;
+                    $(`#${$variable._wapperId}-btnShowAnno-${viewNo}`).hide();
+                    $(`#${$variable._wapperId}-btnHideAnno-${viewNo}`).show();
+                    $function._redrawAnnotationCanvas(viewNo);
+                });
 
-            $(`#${$variable._wapperId}-btnHideAnno-${viewNo}`).click(function () {
-                $variable._showAnnotation = false;
-                $(`#${$variable._wapperId}-btnHideAnno-${viewNo}`).hide();
-                $(`#${$variable._wapperId}-btnShowAnno-${viewNo}`).show();
-                $function._clearAnnotationCanvas(viewNo);
-            });
+                $(`#${$variable._wapperId}-btnHideAnno-${viewNo}`).click(function () {
+                    $variable._showAnnotation = false;
+                    $(`#${$variable._wapperId}-btnHideAnno-${viewNo}`).hide();
+                    $(`#${$variable._wapperId}-btnShowAnno-${viewNo}`).show();
+                    $function._clearAnnotationCanvas(viewNo);
+                });
 
-            $(`#${$variable._wapperId}-btnEditAnno-${viewNo}`).click(function () {
-                if ($viewers[viewNo]._annoMode !== AnnoMode.Edit) {
-                    $viewers[viewNo]._annoMode = AnnoMode.Edit;
-                    $(`#${$variable._wapperId}-btnEditAnno-${viewNo}`).addClass("btn-active").removeClass("btn-default");
-                } else {
-                    $viewers[viewNo]._annoMode = AnnoMode.None;
-                    $(`#${$variable._wapperId}-btnEditAnno-${viewNo}`).addClass("btn-default").removeClass("btn-active");
-                }
-            });
-
-            $(`#${$variable._wapperId}-btnPrev-${viewNo}`).click(function () {
-                $importVariable.imageInfo[viewNo].currentPage--;
-                $function.loadImage($importVariable, viewNo);
-                $(`#dummy-currentPage-${viewNo}`).val(`${$importVariable.imageInfo[viewNo].currentPage}`);
-                $(`#dummy-totalPage-${viewNo}`).html(` /${$importVariable.imageInfo[viewNo].totalPage}`);
-                if ($importVariable.imageInfo[viewNo].currentPage === 1) {
-                    $(`#${$variable._wapperId}-btnPrev-${viewNo}`).prop('disabled',true);
-                }
-                $(`#${$variable._wapperId}-btnNext-${viewNo}`).prop('disabled',false);
-            });
-
-            $(`#${$variable._wapperId}-btnNext-${viewNo}`).click(function () {
-                $importVariable.imageInfo[viewNo].currentPage++;
-                $function.loadImage($importVariable, 0);
-                $(`#dummy-currentPage-${viewNo}`).val(`${$importVariable.imageInfo[viewNo].currentPage}`);
-                $(`#dummy-totalPage-${viewNo}`).html(` /${$importVariable.imageInfo[viewNo].totalPage}`);
-                if ($importVariable.imageInfo[viewNo].currentPage === parseInt($importVariable.imageInfo[viewNo].totalPage)) {
-                    $(`#${$variable._wapperId}-btnNext-${viewNo}`).prop('disabled',true);
-                }
-                $(`#${$variable._wapperId}-btnPrev-${viewNo}`).prop('disabled',false);
-            });
-
-            $(`#${$variable._wapperId}-btnUnMax-${viewNo}`).click(function () {
-                $importVariable.viewerWidth /= 2;
-                $(`#myDiv`).empty().imageviewer();
-                $(`#${$variable._wapperId}-btnUnMax-${viewNo}`).hide();
-                $(`#${$variable._wapperId}-btnMax-${viewNo}`).show();
-            });
-
-            $(`#${$variable._wapperId}-btnMax-${viewNo}`).click(function () {
-                $importVariable.viewerWidth *= 2;
-                $(`#myDiv`).empty().imageviewer();
-                $(`#${$variable._wapperId}-btnMax-${viewNo}`).hide();
-                $(`#${$variable._wapperId}-btnUnMax-${viewNo}`).show();
-            });
-
-            $(`#dummy-currentPage-${viewNo}`).keypress(function (e) {
-                if(e.which === 13) {
-                    let currentPage = $(`#dummy-currentPage-${viewNo}`).val();
-                    if (currentPage >= 1 && currentPage <= $importVariable.imageInfo[viewNo].totalPage) {
-                        $importVariable.imageInfo[viewNo].currentPage = currentPage;
-                        $function.loadImage($importVariable, viewNo);
-                        $(`#dummy-currentPage-${viewNo}`).val(`${$importVariable.imageInfo[viewNo].currentPage}`);
-                        $(`#dummy-totalPage-${viewNo}`).html(` /${$importVariable.imageInfo[viewNo].totalPage}`);
-                        $(`#${$variable._wapperId}-btnPrev-${viewNo}`).prop('disabled',false);
-                        $(`#${$variable._wapperId}-btnNext-${viewNo}`).prop('disabled',false);
-
-                        switch (currentPage) {
-                            case '1' :
-                                $(`#${$variable._wapperId}-btnPrev-${viewNo}`).prop('disabled',true);
-                                break;
-                            case $importVariable.imageInfo.totalPage :
-                                $(`#${$variable._wapperId}-btnNext-${viewNo}`).prop('disabled',true);
-                                break;
-                        }
-                    }else {
-                        alert("error");
-                        $(`#dummy-currentPage-${viewNo}`).val(1);
-                        $importVariable.imageInfo[viewNo].currentPage = $(`#dummy-currentPage-${viewNo}`).val();
-                        $function.loadImage($importVariable, viewNo);
-                        $(`#dummy-currentPage-${viewNo}`).val(`${$importVariable.imageInfo[viewNo].currentPage}`);
-                        $(`#dummy-totalPage-${viewNo}`).html(` /${$importVariable.imageInfo[viewNo].totalPage}`);
-                        $(`#${$variable._wapperId}-btnPrev-${viewNo}`).prop('disabled',true);
-                        $(`#${$variable._wapperId}-btnNext-${viewNo}`).prop('disabled',false);
+                $(`#${$variable._wapperId}-btnEditAnno-${viewNo}`).click(function () {
+                    if ($viewers[viewNo]._annoMode !== AnnoMode.Edit) {
+                        $viewers[viewNo]._annoMode = AnnoMode.Edit;
+                        $(`#${$variable._wapperId}-btnEditAnno-${viewNo}`).addClass("btn-active").removeClass("btn-default");
+                    } else {
+                        $viewers[viewNo]._annoMode = AnnoMode.None;
+                        $(`#${$variable._wapperId}-btnEditAnno-${viewNo}`).addClass("btn-default").removeClass("btn-active");
                     }
-                }
-            })
-        }
+                });
+
+                $(`#${$variable._wapperId}-btnPrev-${viewNo}`).click(function () {
+                    $importVariable.imageInfo[viewNo].currentPage--;
+                    $function.loadImage($importVariable, viewNo);
+                    $(`#dummy-currentPage-${viewNo}`).val(`${$importVariable.imageInfo[viewNo].currentPage}`);
+                    $(`#dummy-totalPage-${viewNo}`).html(` /${$importVariable.imageInfo[viewNo].totalPage}`);
+                    if ($importVariable.imageInfo[viewNo].currentPage === 1) {
+                        $(`#${$variable._wapperId}-btnPrev-${viewNo}`).prop('disabled',true);
+                    }
+                    $(`#${$variable._wapperId}-btnNext-${viewNo}`).prop('disabled',false);
+                });
+
+                $(`#${$variable._wapperId}-btnNext-${viewNo}`).click(function () {
+                    $importVariable.imageInfo[viewNo].currentPage++;
+                    $function.loadImage($importVariable, viewNo);
+                    $(`#dummy-currentPage-${viewNo}`).val(`${$importVariable.imageInfo[viewNo].currentPage}`);
+                    $(`#dummy-totalPage-${viewNo}`).html(` /${$importVariable.imageInfo[viewNo].totalPage}`);
+                    if ($importVariable.imageInfo[viewNo].currentPage === parseInt($importVariable.imageInfo[viewNo].totalPage)) {
+                        $(`#${$variable._wapperId}-btnNext-${viewNo}`).prop('disabled',true);
+                    }
+                    $(`#${$variable._wapperId}-btnPrev-${viewNo}`).prop('disabled',false);
+                });
+
+                $(`#${$variable._wapperId}-btnUnMax-${viewNo}`).click(function () {
+                    $importVariable.viewerWidth /= 2;
+                    $(`#myDiv`).empty().imageviewer();
+                    $(`#${$variable._wapperId}-btnUnMax-${viewNo}`).hide();
+                    $(`#${$variable._wapperId}-btnMax-${viewNo}`).show();
+                });
+
+                $(`#${$variable._wapperId}-btnMax-${viewNo}`).click(function () {
+                    $importVariable.viewerWidth *= 2;
+                    $(`#myDiv`).empty().imageviewer();
+                    $(`#${$variable._wapperId}-btnMax-${viewNo}`).hide();
+                    $(`#${$variable._wapperId}-btnUnMax-${viewNo}`).show();
+                });
+
+                $(`#dummy-currentPage-${viewNo}`).keypress(function (e) {
+                    if(e.which === 13) {
+                        let currentPage = $(`#dummy-currentPage-${viewNo}`).val();
+                        if (currentPage >= 1 && currentPage <= $importVariable.imageInfo[viewNo].totalPage) {
+                            $importVariable.imageInfo[viewNo].currentPage = currentPage;
+                            $function.loadImage($importVariable, viewNo);
+                            $(`#dummy-currentPage-${viewNo}`).val(`${$importVariable.imageInfo[viewNo].currentPage}`);
+                            $(`#dummy-totalPage-${viewNo}`).html(` /${$importVariable.imageInfo[viewNo].totalPage}`);
+                            $(`#${$variable._wapperId}-btnPrev-${viewNo}`).prop('disabled',false);
+                            $(`#${$variable._wapperId}-btnNext-${viewNo}`).prop('disabled',false);
+
+                            switch (currentPage) {
+                                case '1' :
+                                    $(`#${$variable._wapperId}-btnPrev-${viewNo}`).prop('disabled',true);
+                                    break;
+                                case $importVariable.imageInfo.totalPage :
+                                    $(`#${$variable._wapperId}-btnNext-${viewNo}`).prop('disabled',true);
+                                    break;
+                            }
+                        }else {
+                            alert("error");
+                            $(`#dummy-currentPage-${viewNo}`).val(1);
+                            $importVariable.imageInfo[viewNo].currentPage = $(`#dummy-currentPage-${viewNo}`).val();
+                            $function.loadImage($importVariable, viewNo);
+                            $(`#dummy-currentPage-${viewNo}`).val(`${$importVariable.imageInfo[viewNo].currentPage}`);
+                            $(`#dummy-totalPage-${viewNo}`).html(` /${$importVariable.imageInfo[viewNo].totalPage}`);
+                            $(`#${$variable._wapperId}-btnPrev-${viewNo}`).prop('disabled',true);
+                            $(`#${$variable._wapperId}-btnNext-${viewNo}`).prop('disabled',false);
+                        }
+                    }
+                })
+            }
 //----------------------------------------------------------------------------------------------------------------------
 //set annotation component
         /*
@@ -370,67 +376,59 @@
         */
 //----------------------------------------------------------------------------------------------------------------------
 //Mouse Event
-        $annotationContain[viewNo].bind("contextmenu", function (e) { return false; });
-        $annotationCanvas[viewNo].addEventListener('mousedown', function (e) {
+            $annotationContain[viewNo].bind("contextmenu", function (e) { return false; });
+            $annotationCanvas[viewNo].addEventListener('mousedown', function (e) {
 
-            $mouseTrack.startX = e.offsetX;   $mouseTrack.startY = e.offsetY;
+                $mouseTrack.startX = e.offsetX;   $mouseTrack.startY = e.offsetY;
 
-            if (e.button === 2) { $viewers[viewNo]._mouseMode = MouseMode.Zoom; }
-            else if (e.button === 0) { $viewers[viewNo]._mouseMode = MouseMode.Move; }
-            else { $viewers[viewNo]._mouseMode = MouseMode.None; }
-        });
+                if (e.button === 2) { $viewers[viewNo]._mouseMode = MouseMode.Zoom; }
+                else if (e.button === 0) { $viewers[viewNo]._mouseMode = MouseMode.Move; }
+                else { $viewers[viewNo]._mouseMode = MouseMode.None; }
+            });
 
-        $annotationCanvas[viewNo].addEventListener('mousemove', function (e) {
-            switch ($viewers[viewNo]._mouseMode) {
-                case MouseMode.Zoom :
-                    $function._drawRectangleInTempCanvas($mouseTrack.startX, $mouseTrack.startY, e.offsetX-$mouseTrack.startX, e.offsetY-$mouseTrack.startY, true, false, viewNo);
-                    break;
-                case MouseMode.Move :
-                    $viewers[viewNo]._newX = $annotationScrollPaneAPI[viewNo].getContentPositionX() - (e.offsetX - $mouseTrack.startX);
-                    $viewers[viewNo]._newY = $annotationScrollPaneAPI[viewNo].getContentPositionY() - (e.offsetY - $mouseTrack.startY);
+            $annotationCanvas[viewNo].addEventListener('mousemove', function (e) {
+                switch ($viewers[viewNo]._mouseMode) {
+                    case MouseMode.Zoom :
+                        $function._drawRectangleInTempCanvas($mouseTrack.startX, $mouseTrack.startY, e.offsetX-$mouseTrack.startX, e.offsetY-$mouseTrack.startY, true, false, viewNo);
+                        break;
+                    case MouseMode.Move :
+                        $viewers[viewNo]._newX = $annotationScrollPaneAPI[viewNo].getContentPositionX() - (e.offsetX - $mouseTrack.startX);
+                        $viewers[viewNo]._newY = $annotationScrollPaneAPI[viewNo].getContentPositionY() - (e.offsetY - $mouseTrack.startY);
 
-                    $imageScrollPaneAPI[viewNo].scrollTo($viewers[viewNo]._newX,$viewers[viewNo]._newY);
-                    $annotationScrollPaneAPI[viewNo].scrollTo($viewers[viewNo]._newX,$viewers[viewNo]._newY);
-                    break;
-            }
-        });
+                        $imageScrollPaneAPI[viewNo].scrollTo($viewers[viewNo]._newX,$viewers[viewNo]._newY);
+                        $annotationScrollPaneAPI[viewNo].scrollTo($viewers[viewNo]._newX,$viewers[viewNo]._newY);
+                        break;
+                }
+            });
 
-        $annotationCanvas[viewNo].addEventListener('mouseup', function (e) {
-            switch ($viewers[viewNo]._mouseMode) {
-                case MouseMode.Zoom :
-                    if ($viewers[viewNo]._annoMode === AnnoMode.Edit) {
-                        $annoEditDialog[viewNo].open();
-                    } else {
-                        $mouseTrack.endX = e.offsetX;
-                        $mouseTrack.endY = e.offsetY;
-                        $function._clearTempCanvas(viewNo);
-                        let x = $mouseTrack.startX < $mouseTrack.endX ? $mouseTrack.startX : $mouseTrack.endX;
-                        let y = $mouseTrack.startY < $mouseTrack.endY ? $mouseTrack.startY : $mouseTrack.endY;
-                        $function._zoomArea(x/$viewers[viewNo]._currentScale, y/$viewers[viewNo]._currentScale, Math.abs($mouseTrack.endX - $mouseTrack.startX)/$viewers[viewNo]._currentScale, Math.abs($mouseTrack.endY - $mouseTrack.startY)/$viewers[viewNo]._currentScale, viewNo);
-                    }
-                    break;
-                case MouseMode.Move :
-                    $imageScrollPaneAPI[viewNo].scrollTo($viewers[viewNo]._newX,$variable._newY);
-                    $annotationScrollPaneAPI[viewNo].scrollTo($viewers[viewNo]._newX,$variable._newY);
-                    break;
-            }
-            $viewers[viewNo]._mouseMode = MouseMode.None;
-        });
+            $annotationCanvas[viewNo].addEventListener('mouseup', function (e) {
+                switch ($viewers[viewNo]._mouseMode) {
+                    case MouseMode.Zoom :
+                        if ($viewers[viewNo]._annoMode === AnnoMode.Edit) {
+                            $annoEditDialog[viewNo].open();
+                        } else {
+                            $mouseTrack.endX = e.offsetX;
+                            $mouseTrack.endY = e.offsetY;
+                            $function._clearTempCanvas(viewNo);
+                            let x = $mouseTrack.startX < $mouseTrack.endX ? $mouseTrack.startX : $mouseTrack.endX;
+                            let y = $mouseTrack.startY < $mouseTrack.endY ? $mouseTrack.startY : $mouseTrack.endY;
+                            $function._zoomArea(x/$viewers[viewNo]._currentScale, y/$viewers[viewNo]._currentScale, Math.abs($mouseTrack.endX - $mouseTrack.startX)/$viewers[viewNo]._currentScale, Math.abs($mouseTrack.endY - $mouseTrack.startY)/$viewers[viewNo]._currentScale, viewNo);
+                        }
+                        break;
+                    case MouseMode.Move :
+                        $imageScrollPaneAPI[viewNo].scrollTo($viewers[viewNo]._newX,$variable._newY);
+                        $annotationScrollPaneAPI[viewNo].scrollTo($viewers[viewNo]._newX,$variable._newY);
+                        break;
+                }
+                $viewers[viewNo]._mouseMode = MouseMode.None;
+            });
+        }
     };
-//======================================================================================================================
-//imageviewer2 - multiDoc
-    $.fn.imageviewer2 = function (options) {
-
-        $importVariable = $.extend($importVariable, options);
-        $variable._showAnnotation = $importVariable.showAnnotationTool;
-
-        console.log(options);
-    };
-//======================================================================================================================
 //----------------------------------------------------------------------------------------------------------------------
 //Functions
     let $function = {
         loadImage: function(docObject, viewNo) {
+
             $viewers[viewNo]._rotate = 0;
 
             if (docObject.showAnnotationTool) { $function.loadAnnotation(); }
