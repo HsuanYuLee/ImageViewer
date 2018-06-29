@@ -17,23 +17,6 @@
                 $('#login').click(function() {
                     if (!log) {
                         let T1 = performance.now();
-                        //----------------------------------------------------------------------------------------------
-                        //Temp
-                        $('#myDiv').imageviewer({
-                            viewerWidth: [1500,1500],
-                            viewerHeight: [600,600],
-                            imageServerUrl: './images/test.tif',
-                            imageInfo: [
-                                { docId: '20262', formId: '', currentPage: '1', viewPage : '', totalPage: '4', viewerWidth: 1500, viewerHeight: 600},
-                                { docId: '27895', formId: '', currentPage: '1', viewPage : '', totalPage: '4', viewerWidth: 1500, viewerHeight: 600}
-                            ],
-                            initDisplayMode: 0,
-                            waterMarkText: '中文 ImageViewer Demo',
-                            displayAfterLoad: true,
-                            showAnnotationTool: false
-                        });
-                        //----------------------------------------------------------------------------------------------
-                        /*
                         $.ajax({
                             type : 'POST',
                             url : "imageServlet",
@@ -47,18 +30,18 @@
                                     viewerWidth: 1500,
                                     viewerHeight: 600,
                                     imageServerUrl: 'http://localhost:8083/ImageViewer/imageServlet',
-                                    imageInfo : [
-                                        { docId : '20262', formId : '', currentPage : '1', viewPage : '', totalPage : '4' },
-                                        { docId : '27895', formId : '', currentPage : '1', viewPage : '', totalPage : '4' }
+                                    imageInfo: [
+                                        { docId: '20262', formId: '', currentPage: '1', viewPage : '', totalPage: '4', viewerWidth: 1500, viewerHeight: 600},
+                                        { docId: '27895', formId: '', currentPage: '1', viewPage : '', totalPage: '4', viewerWidth: 1500, viewerHeight: 600}
                                     ],
                                     initDisplayMode : 0,
                                     waterMarkText: '中文 ImageViewer Demo',
                                     displayAfterLoad: true,
-                                    showAnnotationTool: true
+                                    showAnnotationTool: false
                                 });
                             }
                         });
-                        */
+
                         log = true;
                     }
                 });

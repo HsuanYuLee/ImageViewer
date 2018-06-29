@@ -436,10 +436,10 @@
 
             if (docObject.showAnnotationTool) { $function.loadAnnotation(); }
 
-            // let url = `${docObject.imageServerUrl}?docId=${docObject.imageInfo[viewNo].docId}&currentPage=${docObject.imageInfo[viewNo].currentPage}&type=tiff`;
+            let url = `${docObject.imageServerUrl}?docId=${docObject.imageInfo[viewNo].docId}&currentPage=${docObject.imageInfo[viewNo].currentPage}&type=tiff`;
             //----------------------------------------------------------------------------------------------------------
             //temp
-            let url = docObject.imageServerUrl;
+            //let url = docObject.imageServerUrl;
             //----------------------------------------------------------------------------------------------------------
             if (url !== $viewers[viewNo]._docUrl) {
 
