@@ -77,7 +77,12 @@
         _displayMode: DisplayMode.FullSize,
         _mouseMode: MouseMode.None,
         _annoMode: AnnoMode.None,
+        _maxClicked: true,
+        _unMaxClicked: false
+
     }, {
+        _docUrl : null,
+        _tiff : null,
         _minScale: 0.2,
         _currentScale: 1,
         _oriImageWidth : null,  _oriImageHeight : null,
@@ -89,6 +94,8 @@
         _displayMode: DisplayMode.FullSize,
         _mouseMode: MouseMode.None,
         _annoMode: AnnoMode.None,
+        _maxClicked: true,
+        _unMaxClicked: false
     }];
 
     let $variable = {
@@ -148,6 +155,14 @@
                 $(`#${$variable._wapperId}-btnNext-${viewNo}`).after(`<span><input type='text' maxlength=3 style='width:24px;' id=dummy-currentPage-${viewNo}><span id=dummy-totalPage-${viewNo}>/</span></span>`);
                 $(`#${$variable._wapperId}-btnUnMax-${viewNo}`).css({float : 'right'});
                 $(`#${$variable._wapperId}-btnMax-${viewNo}`).css({float : 'right'});
+                if ($viewers[viewNo]._maxClicked){
+                    $(`#${$variable._wapperId}-btnUnMax-${viewNo}`).show();
+                    $(`#${$variable._wapperId}-btnMax-${viewNo}`).hide();
+
+                } else {
+                    $(`#${$variable._wapperId}-btnUnMax-${viewNo}`).hide();
+                    $(`#${$variable._wapperId}-btnMax-${viewNo}`).show();
+                }
             }
 
 //render viewer
@@ -281,6 +296,8 @@
                     $(`#myDiv`).empty().imageviewer();
                     $(`#${$variable._wapperId}-btnUnMax-${viewNo}`).hide();
                     $(`#${$variable._wapperId}-btnMax-${viewNo}`).show();
+                    $viewers[viewNo]._unMaxClicked = true;
+                    $viewers[viewNo]._maxClicked = false;
                 });
 
                 $(`#${$variable._wapperId}-btnMax-${viewNo}`).click(function () {
@@ -288,6 +305,8 @@
                     $(`#myDiv`).empty().imageviewer();
                     $(`#${$variable._wapperId}-btnMax-${viewNo}`).hide();
                     $(`#${$variable._wapperId}-btnUnMax-${viewNo}`).show();
+                    $viewers[viewNo]._maxClicked = true;
+                    $viewers[viewNo]._unMaxClicked = false;
                 });
 
                 $(`#dummy-currentPage-${viewNo}`).keypress(function (e) {
