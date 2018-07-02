@@ -63,40 +63,7 @@
         showAnnotationTool: true
     };
 
-    let $viewers = [{
-        _docUrl : null,
-        _tiff : null,
-        _minScale: 0.2,
-        _currentScale: 1,
-        _oriImageWidth : null,  _oriImageHeight : null,
-        _imageWidth: 1,         _imageHeight: 1,
-        _centerX: 1,            _centerY: 1,
-        _canvasDisplayWidth: 0, _canvasDisplayHeight: 0,
-        _newX: 0,               _newY: 0,
-        _rotate: 0,
-        _displayMode: DisplayMode.FullSize,
-        _mouseMode: MouseMode.None,
-        _annoMode: AnnoMode.None,
-        _maxClicked: true,
-        _unMaxClicked: false
-
-    }, {
-        _docUrl : null,
-        _tiff : null,
-        _minScale: 0.2,
-        _currentScale: 1,
-        _oriImageWidth : null,  _oriImageHeight : null,
-        _imageWidth: 1,         _imageHeight: 1,
-        _centerX: 1,            _centerY: 1,
-        _canvasDisplayWidth: 0, _canvasDisplayHeight: 0,
-        _newX: 0,               _newY: 0,
-        _rotate: 0,
-        _displayMode: DisplayMode.FullSize,
-        _mouseMode: MouseMode.None,
-        _annoMode: AnnoMode.None,
-        _maxClicked: true,
-        _unMaxClicked: false
-    }];
+    let $viewers = [];
 
     let $variable = {
         waterMarkFont: 'bold 60pt Calibri',
@@ -129,7 +96,30 @@
         $importVariable = $.extend($importVariable, options);
         $variable._showAnnotation = $importVariable.showAnnotationTool;
 
+//---------------------------------------------------------------------------------------------------------------------
+//initialize viewersArray
         for (let viewNo in $importVariable.imageInfo){
+            if ($viewers[viewNo] === undefined) {
+                for (let i = 0; i < $importVariable.imageInfo.length; i++)
+                {$viewers.push({
+                    _docUrl : null,
+                    _tiff : null,
+                    _minScale: 0.2,
+                    _currentScale: 1,
+                    _oriImageWidth : null,  _oriImageHeight : null,
+                    _imageWidth: 1,         _imageHeight: 1,
+                    _centerX: 1,            _centerY: 1,
+                    _canvasDisplayWidth: 0, _canvasDisplayHeight: 0,
+                    _newX: 0,               _newY: 0,
+                    _rotate: 0,
+                    _displayMode: DisplayMode.FullSize,
+                    _mouseMode: MouseMode.None,
+                    _annoMode: AnnoMode.None,
+                    _maxClicked: true,
+                    _unMaxClicked: false
+                });
+                }
+            }
         /*  myId - toolbar
                  - viewerPanel - annotationContain - annotationCanvas (z-index: 4, 所有滑鼠在這一層 listener)
                                - tempCanvas (z-index: 3)
@@ -450,16 +440,10 @@
 //Functions
     let $function = {
         loadImage: function(docObject, viewNo) {
-
             $viewers[viewNo]._rotate = 0;
-
             if (docObject.showAnnotationTool) { $function.loadAnnotation(); }
-
             let url = `${docObject.imageServerUrl}?docId=${docObject.imageInfo[viewNo].docId}&currentPage=${docObject.imageInfo[viewNo].currentPage}&type=tiff`;
-            //----------------------------------------------------------------------------------------------------------
-            //temp
-            //let url = docObject.imageServerUrl;
-            //----------------------------------------------------------------------------------------------------------
+
             if (url !== $viewers[viewNo]._docUrl) {
 
                 $viewers[viewNo]._docUrl = url;
