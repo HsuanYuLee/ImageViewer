@@ -123,13 +123,14 @@
             }
         }
         for (let viewNo in $importVariable.imageInfo){
-        /*  myId - toolbar
-                 - viewerPanel - annotationContain - annotationCanvas (z-index: 4, 所有滑鼠在這一層 listener)
-                               - tempCanvas (z-index: 3)
-                               - watermarkCanvas (z-index: 2)
-                               - imageContain - imageCanvas (z-index: 1)
-        */
         $(`#${$variable._wapperId}`).append(`<div id="View-${viewNo}"></div>`);
+        $function.renderAndComponentViewer(viewNo);
+        }
+    };
+//----------------------------------------------------------------------------------------------------------------------
+//Functions
+    let $function = {
+        renderAndComponentViewer: function(viewNo) {
 //---------------------------------------------------------------------------------------------------------------------
 //render toolBar
             if ($variable.showToolBar) {
@@ -157,8 +158,13 @@
                     $(`#${$variable._wapperId}-btnMax-${viewNo}`).show();
                 }
             }
-
 //render viewer
+            /*  myId - toolbar
+                 - viewerPanel - annotationContain - annotationCanvas (z-index: 4, 所有滑鼠在這一層 listener)
+                               - tempCanvas (z-index: 3)
+                               - watermarkCanvas (z-index: 2)
+                               - imageContain - imageCanvas (z-index: 1)
+            */
             $(`#View-${viewNo}`).append(`
             <div id="${$variable._wapperId}-PANEL-${viewNo}" style="width:${viewNo}px; height:${$importVariable.imageInfo[viewNo].viewerHeight}px;">
                 <canvas id="watermarkCanvas-${viewNo}" width="${$importVariable.imageInfo[viewNo].viewerWidth}" height="${$importVariable.imageInfo[viewNo].viewerHeight}" style="width:${$importVariable.imageInfo[viewNo].viewerWidth}px; height: ${$importVariable.imageInfo[viewNo].viewerHeight}px; position: absolute; z-index: 2;"></canvas>
@@ -172,8 +178,8 @@
                     <canvas id="annotationCanvas-${viewNo}"></canvas>
                 </div>
             </div>`);
-//----------------------------------------------------------------------------------------------------------------------
-//set viewer component
+
+            //set viewer component
             $watermarkCanvas[viewNo] = document.getElementById(`watermarkCanvas-${viewNo}`);
             if ($importVariable.waterMarkText !== '') { $function._drawWaterMark(viewNo);}
 
@@ -285,19 +291,20 @@
                 });
 
                 $(`#${$variable._wapperId}-btnUnMax-${viewNo}`).click(function () {
-                    //$importVariable.imageInfo[viewNo].viewerWidth /= 2;
-                    //$(`#myDiv`).empty().imageviewer();
-                    //$(`#Viewer-${viewNo}`).css('width',);
+                    $importVariable.imageInfo[viewNo].viewerWidth /= 2;
+                    $(`#${$variable._wapperId}-btnUnMax-${viewNo}`).parent().parent().empty();
+                    $function.renderAndComponentViewer(viewNo);
+
                     $(`#${$variable._wapperId}-btnUnMax-${viewNo}`).hide();
                     $(`#${$variable._wapperId}-btnMax-${viewNo}`).show();
-                    $(`#${$variable._wapperId}-btnUnMax-${viewNo}`).parent().parent().empty();
                     $viewers[viewNo]._unMaxClicked = true;
                     $viewers[viewNo]._maxClicked = false;
                 });
 
                 $(`#${$variable._wapperId}-btnMax-${viewNo}`).click(function () {
-                    //$importVariable.imageInfo[viewNo].viewerWidth *= 2;
-                   // $(`#myDiv`).empty().imageviewer();
+                    $importVariable.imageInfo[viewNo].viewerWidth *= 2;
+                    $(`#${$variable._wapperId}-btnUnMax-${viewNo}`).parent().parent().empty();
+                    $function.renderAndComponentViewer(viewNo);
 
                     $(`#${$variable._wapperId}-btnMax-${viewNo}`).hide();
                     $(`#${$variable._wapperId}-btnUnMax-${viewNo}`).show();
@@ -339,59 +346,59 @@
             }
 //----------------------------------------------------------------------------------------------------------------------
 //set annotation component
-        /*
-        // Annotation 編輯的對話框
-        if ($annoEditDialog[viewNo] === undefined) {
-            $annoEditDialog[viewNo] = new tingle.modal({
-                footer: true,
-                stickyFooter: false,
-                closeMethods: [],
-                //closeLabel: "Close",
-                cssClass: ['custom-class-1', 'custom-class-2'],
-                onOpen: function() {
-                    console.log('modal open');
-                },
-                onClose: function() {
-                    console.log('modal closed');
-                },
-                beforeClose: function() {
-                    // here's goes some logic
-                    // e.g. save content before closing the modal
-                    return true; // close the modal
-                    //return false; // nothing happens
-                }
-            });
+            /*
+            // Annotation 編輯的對話框
+            if ($annoEditDialog[viewNo] === undefined) {
+                $annoEditDialog[viewNo] = new tingle.modal({
+                    footer: true,
+                    stickyFooter: false,
+                    closeMethods: [],
+                    //closeLabel: "Close",
+                    cssClass: ['custom-class-1', 'custom-class-2'],
+                    onOpen: function() {
+                        console.log('modal open');
+                    },
+                    onClose: function() {
+                        console.log('modal closed');
+                    },
+                    beforeClose: function() {
+                        // here's goes some logic
+                        // e.g. save content before closing the modal
+                        return true; // close the modal
+                        //return false; // nothing happens
+                    }
+                });
 
-            $annoEditDialog[viewNo].setContent(`
-            <div class='tab'>
-              <button class='tablinks' id='tabText-${viewNo}'>Text</button>
-              <button class='tablinks' id='tabColor-${viewNo}'>Color</button>
-            </div>
-            <div id='Text-${viewNo}' class='tabcontent'>
-              <textarea rows='4' cols='70' style='border-radius: 4px;' id='${$variable._wapperId}_AnnoText-${viewNo}'></textarea>
-            </div>
-            <div id='Color-${viewNo}' class='tabcontent'>
-              "Background color: <input name='bgColor' type='color' value='${$variable.annotationDefaultBGColor}'/><br/>
-              "Text color: <input name='textColor' type='color' value='${$variable.annotationDefaultTextColor}'/><br/>
-            </div>`);
-            $(`#tabText-${viewNo}`).click(function (e) {
-                $function._showTab(e, `Text-${viewNo}`);
-            });
-            $(`#tabColor-${viewNo}`).click(function (e) {
-                $function._showTab(e, `Color-${viewNo}`);
-            });
-            document.getElementById(`tabText-${viewNo}`).click();
+                $annoEditDialog[viewNo].setContent(`
+                <div class='tab'>
+                  <button class='tablinks' id='tabText-${viewNo}'>Text</button>
+                  <button class='tablinks' id='tabColor-${viewNo}'>Color</button>
+                </div>
+                <div id='Text-${viewNo}' class='tabcontent'>
+                  <textarea rows='4' cols='70' style='border-radius: 4px;' id='${$variable._wapperId}_AnnoText-${viewNo}'></textarea>
+                </div>
+                <div id='Color-${viewNo}' class='tabcontent'>
+                  "Background color: <input name='bgColor' type='color' value='${$variable.annotationDefaultBGColor}'/><br/>
+                  "Text color: <input name='textColor' type='color' value='${$variable.annotationDefaultTextColor}'/><br/>
+                </div>`);
+                $(`#tabText-${viewNo}`).click(function (e) {
+                    $function._showTab(e, `Text-${viewNo}`);
+                });
+                $(`#tabColor-${viewNo}`).click(function (e) {
+                    $function._showTab(e, `Color-${viewNo}`);
+                });
+                document.getElementById(`tabText-${viewNo}`).click();
 
-            $annoEditDialog[viewNo].addFooterBtn('Cancel', 'tingle-btn tingle-btn--primary', function() {
-                // here goes some logic
-                $annoEditDialog[viewNo].close();
-            });
-            $annoEditDialog[viewNo].addFooterBtn('Save', 'tingle-btn tingle-btn--default', function() {
-                // here goes some logic
-                $annoEditDialog[viewNo].close();
-            });
-        }
-        */
+                $annoEditDialog[viewNo].addFooterBtn('Cancel', 'tingle-btn tingle-btn--primary', function() {
+                    // here goes some logic
+                    $annoEditDialog[viewNo].close();
+                });
+                $annoEditDialog[viewNo].addFooterBtn('Save', 'tingle-btn tingle-btn--default', function() {
+                    // here goes some logic
+                    $annoEditDialog[viewNo].close();
+                });
+            }
+            */
 //----------------------------------------------------------------------------------------------------------------------
 //Mouse Event
             $annotationContain[viewNo].bind("contextmenu", function (e) { return false; });
@@ -440,11 +447,8 @@
                 }
                 $viewers[viewNo]._mouseMode = MouseMode.None;
             });
-        }
-    };
-//----------------------------------------------------------------------------------------------------------------------
-//Functions
-    let $function = {
+        },
+
         loadImage: function(docObject, viewNo) {
             $viewers[viewNo]._rotate = 0;
             if (docObject.showAnnotationTool) { $function.loadAnnotation(); }
