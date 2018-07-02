@@ -50,8 +50,7 @@
     let $mouseTrack = { startX: 0, startY: 0, endX: 0, endY: 0};
 
     let $importVariable = {
-        viewerWidth: [1000,1000],
-        viewerHeight: [600,600],
+        viewerWidth: 1000,
         //外部傳入影像資訊
         imageServerUrl: '',
         imageInfo : [{ docId: "", formId: "", currentPage: "", viewPage: "", totalPage: "", viewWidth: 1500, viewHeight: 600 }],
@@ -156,7 +155,7 @@
             }
 
 //render viewer
-            $(`#${$variable._wapperId}`).css('width',$importVariable.imageInfo[viewNo].viewerWidth).append(`
+            $(`#${$variable._wapperId}`).css('width',$importVariable.viewerWidth).append(`
             <div id="${$variable._wapperId}-PANEL-${viewNo}" style="width:${viewNo}px; height:${$importVariable.imageInfo[viewNo].viewerHeight}px;">
                 <canvas id="watermarkCanvas-${viewNo}" width="${$importVariable.imageInfo[viewNo].viewerWidth}" height="${$importVariable.imageInfo[viewNo].viewerHeight}" style="width:${$importVariable.imageInfo[viewNo].viewerWidth}px; height: ${$importVariable.imageInfo[viewNo].viewerHeight}px; position: absolute; z-index: 2;"></canvas>
                 <div id="${$variable._wapperId}-IMAGEDIV-${viewNo}" style="width:${$importVariable.imageInfo[viewNo].viewerWidth}px; height: ${$importVariable.imageInfo[viewNo].viewerHeight}px; padding: 0; text-align: center; position: absolute; z-index: 1;">
