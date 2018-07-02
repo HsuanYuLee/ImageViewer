@@ -93,6 +93,8 @@
 
     $.fn.imageviewer = function (options) {
         $importVariable = $.extend($importVariable, options);
+        $variable._wapperId = `${$(this).attr("id")}`;
+        $(`#${$variable._wapperId}`).css('width',$importVariable.viewerWidth);
         $variable._showAnnotation = $importVariable.showAnnotationTool;
 
 //---------------------------------------------------------------------------------------------------------------------
@@ -119,17 +121,19 @@
                 });
                 }
             }
+        }
+        for (let viewNo in $importVariable.imageInfo){
         /*  myId - toolbar
                  - viewerPanel - annotationContain - annotationCanvas (z-index: 4, 所有滑鼠在這一層 listener)
                                - tempCanvas (z-index: 3)
                                - watermarkCanvas (z-index: 2)
                                - imageContain - imageCanvas (z-index: 1)
         */
+        $(`#${$variable._wapperId}`).append(`<div id="View-${viewNo}"></div>`);
 //---------------------------------------------------------------------------------------------------------------------
 //render toolBar
-            $variable._wapperId = `${$(this).attr("id")}`;
             if ($variable.showToolBar) {
-                $(`#${$variable._wapperId}`).append(`<div id="dummy-tool-btn-warp-${viewNo}" style="background-color:darkgray; width:${$importVariable.imageInfo[viewNo].viewerWidth}px;"></div>`);
+                $(`#View-${viewNo}`).append(`<div id="dummy-tool-btn-warp-${viewNo}" style="background-color:darkgray; width:${$importVariable.imageInfo[viewNo].viewerWidth}px;"></div>`);
                 if (!$importVariable.showAnnotationTool) {
                     $toolsBtn.ShowAnno.show = false;
                     $toolsBtn.HideAnno.show = false;
@@ -155,7 +159,7 @@
             }
 
 //render viewer
-            $(`#${$variable._wapperId}`).css('width',$importVariable.viewerWidth).append(`
+            $(`#View-${viewNo}`).append(`
             <div id="${$variable._wapperId}-PANEL-${viewNo}" style="width:${viewNo}px; height:${$importVariable.imageInfo[viewNo].viewerHeight}px;">
                 <canvas id="watermarkCanvas-${viewNo}" width="${$importVariable.imageInfo[viewNo].viewerWidth}" height="${$importVariable.imageInfo[viewNo].viewerHeight}" style="width:${$importVariable.imageInfo[viewNo].viewerWidth}px; height: ${$importVariable.imageInfo[viewNo].viewerHeight}px; position: absolute; z-index: 2;"></canvas>
                 <div id="${$variable._wapperId}-IMAGEDIV-${viewNo}" style="width:${$importVariable.imageInfo[viewNo].viewerWidth}px; height: ${$importVariable.imageInfo[viewNo].viewerHeight}px; padding: 0; text-align: center; position: absolute; z-index: 1;">
@@ -281,17 +285,20 @@
                 });
 
                 $(`#${$variable._wapperId}-btnUnMax-${viewNo}`).click(function () {
-                    $importVariable.imageInfo[viewNo].viewerWidth /= 2;
-                    $(`#myDiv`).empty().imageviewer();
+                    //$importVariable.imageInfo[viewNo].viewerWidth /= 2;
+                    //$(`#myDiv`).empty().imageviewer();
+                    //$(`#Viewer-${viewNo}`).css('width',);
                     $(`#${$variable._wapperId}-btnUnMax-${viewNo}`).hide();
                     $(`#${$variable._wapperId}-btnMax-${viewNo}`).show();
+                    $(`#${$variable._wapperId}-btnUnMax-${viewNo}`).parent().parent().empty();
                     $viewers[viewNo]._unMaxClicked = true;
                     $viewers[viewNo]._maxClicked = false;
                 });
 
                 $(`#${$variable._wapperId}-btnMax-${viewNo}`).click(function () {
-                    $importVariable.imageInfo[viewNo].viewerWidth *= 2;
-                    $(`#myDiv`).empty().imageviewer();
+                    //$importVariable.imageInfo[viewNo].viewerWidth *= 2;
+                   // $(`#myDiv`).empty().imageviewer();
+
                     $(`#${$variable._wapperId}-btnMax-${viewNo}`).hide();
                     $(`#${$variable._wapperId}-btnUnMax-${viewNo}`).show();
                     $viewers[viewNo]._maxClicked = true;
