@@ -31,19 +31,6 @@
                                         { docId: '20262', formId: '', currentPage: '1', viewPage : '', totalPage: '4', viewerWidth: 1500, viewerHeight: 600},
                                         { docId: '27895', formId: '', currentPage: '1', viewPage : '', totalPage: '4', viewerWidth: 1500, viewerHeight: 600},
                                         { docId: '28115', formId: '', currentPage: '1', viewPage : '', totalPage: '2', viewerWidth: 1500, viewerHeight: 600},
-                                       // { docId: '20256', formId: '', currentPage: '1', viewPage : '', totalPage: '3', viewerWidth: 1500, viewerHeight: 600},
-                                       // { docId: '20188', formId: '', currentPage: '1', viewPage : '', totalPage: '2', viewerWidth: 1500, viewerHeight: 600}
-                                    ],
-                                    showMoveTo: true,
-                                    moveTo:[
-                                        { docId: '20262', title:'承保系統', Page: '1', x: 1090, y: 190, width: 300, height: 70},
-                                        { docId: '20262', title:'保單號碼檢查號', Page: '1', x: 300, y: 400, width: 460, height: 120},
-                                        { docId: '20262', title:'頁碼', Page: '1', x: 1060, y: 3210, width: 300, height: 90},
-                                        { docId: '20262', title:'BBB', Page: '2', x: 550, y: 550, width: 200, height: 100},
-                                        { docId: '27895', title:'CCC', Page: '1', x: 600, y: 600, width: 200, height: 100},
-                                        { docId: '27895', title:'DDD', Page: '2', x: 650, y: 650, width: 200, height: 100},
-                                        { docId: '28115', title:'EEE', Page: '1', x: 700, y: 700, width: 200, height: 100},
-                                        { docId: '28115', title:'FFF', Page: '2', x: 750, y: 750, width: 200, height: 100},
                                     ],
                                     initDisplayMode : 3,
                                     waterMarkText: '中文 ImageViewer Demo',
@@ -52,13 +39,11 @@
                                 });
                             }
                         });
-
                         log = true;
                     }
                 });
                 $('#logout').click(function () {location.reload();})
             });
-            //function zoomArea(x, y, width , height) { $myViewer.zoomArea(x, y, width, height); }
         </script>
     </head>
 
@@ -67,15 +52,6 @@
         Username : <input id="username" type="text"> Password : <input id="password" type="password">
         <button id="login">login</button>
         <button id="logout">logout</button>
-    </div>
-    <div>
-        <!--
-        <button onclick="zoomArea(1400, 60, 400, 160)">zoomArea(1400, 60, 400, 160)</button>&nbsp;&nbsp;
-        <button onclick="zoomArea(400, 600, 600, 400)">zoomArea(400, 600, 600, 400)</button>&nbsp;&nbsp;
-        <button onclick="zoomArea(1000, 1140, 430, 100)">zoomArea(1000, 1140, 430, 100)</button>&nbsp;&nbsp;
-        <button onclick="zoomArea(370, 2000, 300, 1040)">zoomArea(370, 2000, 300, 1040)</button>&nbsp;&nbsp;
-        <button onclick="zoomArea(1330, 2900, 1070, 330)">zoomArea(1330, 2900, 1070, 330)</button>
-        -->
     </div>
     <div style="background-color:bisque;" id="myDiv"></div>
     </body>
