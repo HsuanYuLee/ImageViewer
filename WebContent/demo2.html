@@ -12,9 +12,9 @@
     <script src="./imageviewer/jquery.jscrollpane.min.js"></script>
     <script src="./imageviewer/tingle.min.js"></script>
     <script type="text/javascript">
-        let myViewer;
+        var myViewer;
         $(function() {
-            let log = false;
+            var log = false;
             $('#login').click(function() {
                 if (!log) {
                     $.ajax({
@@ -52,11 +52,7 @@
 
         function moveTo(viewNo, docNo, page, x, y, width, height) {
             myViewer.moveTo(viewNo, docNo, page, x, y, width, height);
-            //myViewer.zoomArea(x, y, width, height, page);
-           // console.log(`docNo: ${docNo}; page: ${page}; x: ${x}; y: ${y}; width: ${width}; height: ${height}`);
         }
-
-        //function zoomArea(x, y, width , height) { $myViewer.zoomArea(x, y, width, height); }
     </script>
 </head>
 
@@ -68,15 +64,8 @@
 </div>
 <div style="background-color:bisque; position: absolute" id="myDiv"></div>
 <div id="moveTo" style="width: 750px; height: 600px; position: absolute; left: 758px; margin: 20px 0 0 10px; z-index: 1; display: none">
-    <span>頁數 : <input id="moveTo-1" type="text"></span><p>
-    <span>頁數 : <input id="moveTo-2" type="text"></span><p>
-    <!--
-    <button onclick="zoomArea(1400, 60, 400, 160)">zoomArea(1400, 60, 400, 160)</button>&nbsp;&nbsp;<p>
-    <button onclick="zoomArea(400, 600, 600, 400)">zoomArea(400, 600, 600, 400)</button>&nbsp;&nbsp;<p>
-    <button onclick="zoomArea(1000, 1140, 430, 100)">zoomArea(1000, 1140, 430, 100)</button>&nbsp;&nbsp;<p>
-    <button onclick="zoomArea(370, 2000, 300, 1040)">zoomArea(370, 2000, 300, 1040)</button>&nbsp;&nbsp;<p>
-    <button onclick="zoomArea(1330, 2900, 1070, 330)">zoomArea(1330, 2900, 1070, 330)</button>
-    -->
+    <span>P1. 頁數 : <input id="moveTo-1" type="text"></span><p>
+    <span>P3. 頁數 : <input id="moveTo-2" type="text"></span><p>
 </div>
 </body>
 </html>

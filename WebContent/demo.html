@@ -12,8 +12,9 @@
         <script src="./imageviewer/jquery.jscrollpane.min.js"></script>
         <script src="./imageviewer/tingle.min.js"></script>
         <script type="text/javascript">
+            var myViewer;
             $(function() {
-                let log = false;
+                var log = false;
                 $('#login').click(function() {
                     if (!log) {
                         $.ajax({
@@ -24,7 +25,7 @@
                                 password : document.getElementById('password').value
                             },
                             success : function () {
-                                $('#myDiv').imageviewer({
+                                myViewer = $('#myDiv').imageviewer({
                                     viewerWidth: 1500, viewerHeight: 600,
                                     imageServerUrl: 'http://localhost:8083/ImageViewer/imageServlet',
                                     imageInfo: [
