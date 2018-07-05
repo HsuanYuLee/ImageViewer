@@ -345,20 +345,20 @@
                     $toolsBtn.DelAnno.show = false;
                 }
                 for (var i in $toolsBtn) {
-                    $('#dummy-tool-btn-warp-'+viewNo).append(`
-                    <button type="button" id="${$variable._wapperId}-${$toolsBtn[i].id}-${viewNo}" class="tbtn btn-primary" title="${$toolsBtn[i].title}" ><i class="fa ${$toolsBtn[i].css} fa-1x"></i></button>`);
-                    if (!$toolsBtn[i].show) {$(`#${$variable._wapperId}-${$toolsBtn[i].id}-${viewNo}`).css({display : 'none'});}
+                    $('#dummy-tool-btn-warp-'+viewNo).append(
+                        '<button type="button" id="'+$variable._wapperId+'-'+$toolsBtn[i].id+'-'+viewNo+'" class="tbtn btn-primary" title="'+$toolsBtn[i].title+'" ><i class="fa '+$toolsBtn[i].css+' fa-1x"></i></button>');
+                    if (!$toolsBtn[i].show) {$('#'+$variable._wapperId+'-'+$toolsBtn[i].id+'-'+viewNo).css({display : 'none'});}
                 }
-                $(`#${$variable._wapperId}-btnNext-${viewNo}`).after(`<span><input type='text' maxlength=3 style='width:24px;' id=dummy-currentPage-${viewNo}><span id=dummy-totalPage-${viewNo}>/</span></span>`);
-                $(`#${$variable._wapperId}-btnUnMax-${viewNo}`).css({float : 'right'});
-                $(`#${$variable._wapperId}-btnMax-${viewNo}`).css({float : 'right'});
+                $('#'+$variable._wapperId+'-btnNext-'+viewNo).after('<span><input type="text" maxlength=3 style="width:24px;" id=dummy-currentPage-'+viewNo+'><span id=dummy-totalPage-'+viewNo+'>/</span></span>');
+                $('#'+$variable._wapperId+'-btnUnMax-'+viewNo).css({float : 'right'});
+                $('#'+$variable._wapperId+'-btnMax-'+viewNo).css({float : 'right'});
                 if ($viewers[viewNo]._maxClicked){
-                    $(`#${$variable._wapperId}-btnUnMax-${viewNo}`).show();
-                    $(`#${$variable._wapperId}-btnMax-${viewNo}`).hide();
+                    $('#'+$variable._wapperId+'-btnUnMax-'+viewNo).show();
+                    $('#'+$variable._wapperId+'-btnMax-'+viewNo).hide();
 
                 } else {
-                    $(`#${$variable._wapperId}-btnUnMax-${viewNo}`).hide();
-                    $(`#${$variable._wapperId}-btnMax-${viewNo}`).show();
+                    $('#'+$variable._wapperId+'-btnUnMax-'+viewNo).hide();
+                    $('#'+$variable._wapperId+'-btnMax-'+viewNo).show();
                 }
             }
     //render viewer
@@ -368,7 +368,7 @@
                                - watermarkCanvas (z-index: 2)
                                - imageContain - imageCanvas (z-index: 1)
             */
-            $(`#View-${viewNo}`).append(`
+            $('#View-'+viewNo).append(`
             <div id="${$variable._wapperId}-PANEL-${viewNo}" style="width:${viewNo}px; height:${$importVariable.imageInfo[viewNo].viewerHeight}px;">
                 <canvas id="watermarkCanvas-${viewNo}" width="${$importVariable.imageInfo[viewNo].viewerWidth}" height="${$importVariable.imageInfo[viewNo].viewerHeight}" style="width:${$importVariable.imageInfo[viewNo].viewerWidth}px; height: ${$importVariable.imageInfo[viewNo].viewerHeight}px; position: absolute; z-index: 2;"></canvas>
                 <div id="${$variable._wapperId}-IMAGEDIV-${viewNo}" style="width:${$importVariable.imageInfo[viewNo].viewerWidth}px; height: ${$importVariable.imageInfo[viewNo].viewerHeight}px; padding: 0; text-align: center; position: absolute; z-index: 1;">
