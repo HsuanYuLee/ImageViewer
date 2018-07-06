@@ -26,18 +26,17 @@
                         },
                         success : function () {
                             myViewer = $('#myDiv').imageviewer({
-                                viewerWidth: 750, viewerHeight: 600,
+                                width: 750, height: 600,
+                                minWidth: 750,
+                                closeMaxAndUnmax: true,
                                 imageServerUrl: 'http://localhost:8083/ImageViewer/imageServlet',
                                 imageInfo: [
-                                    { docId: '27895', formId: '', currentPage: '1', viewPage : '', totalPage: '4', viewerWidth: 750, viewerHeight: 600},
+                                    { docId: '27895', formId: '', currentPage: '1', viewPage : '', totalPage: '4'},
                                 ],
-                                showMoveTo: true,
                                 initDisplayMode : 3,
                                 waterMarkText: '中文 ImageViewer Demo',
-                                displayAfterLoad: true,
                                 showAnnotationTool: false
                             });
-
                             $('#moveTo').css('display','block');
                         }
                     });

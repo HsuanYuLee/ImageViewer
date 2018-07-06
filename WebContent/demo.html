@@ -1,59 +1,59 @@
 <!doctype html>
 <html>
-    <head>
-        <meta charset="UTF-8" />
-        <title>View Image</title>
-        <link rel="stylesheet" href="./imageviewer/font-awesome/css/font-awesome.min.css" />
-        <link rel="stylesheet" href="./imageviewer/ezacquire.imageviewer.css" />
-        <link rel="stylesheet" href="./imageviewer/tingle.css" />
-        <script src="./imageviewer/tiff.min.js"></script>
-        <script src="imageviewer/jquery-1.12.3.js"></script>
-        <script src="./imageviewer/ezacquire.imageviewer.js"></script>
-        <script src="./imageviewer/jquery.jscrollpane.min.js"></script>
-        <script src="./imageviewer/tingle.min.js"></script>
-        <script type="text/javascript">
-            var myViewer;
-            $(function() {
-                var log = false;
-                $('#login').click(function() {
-                    if (!log) {
-                        $.ajax({
-                            type : 'POST',
-                            url : "imageServlet",
-                            data : {
-                                username : document.getElementById('username').value,
-                                password : document.getElementById('password').value
-                            },
-                            success : function () {
-                                myViewer = $('#myDiv').imageviewer({
-                                    viewerWidth: 1500, viewerHeight: 600,
-                                    imageServerUrl: 'http://localhost:8083/ImageViewer/imageServlet',
-                                    imageInfo: [
-                                        { docId: '20262', formId: '', currentPage: '1', viewPage : '', totalPage: '4', viewerWidth: 1500, viewerHeight: 600},
-                                        { docId: '27895', formId: '', currentPage: '1', viewPage : '', totalPage: '4', viewerWidth: 1500, viewerHeight: 600},
-                                        { docId: '28115', formId: '', currentPage: '1', viewPage : '', totalPage: '2', viewerWidth: 1500, viewerHeight: 600},
-                                    ],
-                                    initDisplayMode : 3,
-                                    waterMarkText: '中文 ImageViewer Demo',
-                                    displayAfterLoad: true,
-                                    showAnnotationTool: false
-                                });
-                            }
-                        });
-                        log = true;
-                    }
-                });
-                $('#logout').click(function () {location.reload();})
+<head>
+    <meta charset="UTF-8" />
+    <title>View Image</title>
+    <link rel="stylesheet" href="./imageviewer/font-awesome/css/font-awesome.min.css" />
+    <link rel="stylesheet" href="./imageviewer/ezacquire.imageviewer.css" />
+    <link rel="stylesheet" href="./imageviewer/tingle.css" />
+    <script src="./imageviewer/tiff.min.js"></script>
+    <script src="imageviewer/jquery-1.12.3.js"></script>
+    <script src="./imageviewer/ezacquire.imageviewer.js"></script>
+    <script src="./imageviewer/jquery.jscrollpane.min.js"></script>
+    <script src="./imageviewer/tingle.min.js"></script>
+    <script type="text/javascript">
+        var myViewer;
+        $(function() {
+            var log = false;
+            $('#login').click(function() {
+                if (!log) {
+                    $.ajax({
+                        type : 'POST',
+                        url : "imageServlet",
+                        data : {
+                            username : document.getElementById('username').value,
+                            password : document.getElementById('password').value
+                        },
+                        success : function () {
+                            myViewer = $('#myDiv').imageviewer({
+                                width: 1500, height: 600,
+                                minWidth: 800,
+                                closeMaxAndUnmax: false,
+                                imageServerUrl: 'http://localhost:8083/ImageViewer/imageServlet',
+                                imageInfo: [
+                                    { docId: '20262', formId: '', currentPage: '1', viewPage : '', totalPage: '4'},
+                                    { docId: '27895', formId: '', currentPage: '1', viewPage : '', totalPage: '4'},
+                                    { docId: '28115', formId: '', currentPage: '1', viewPage : '', totalPage: '2'},
+                                ],
+                                initDisplayMode : 3,
+                                waterMarkText: '中文 ImageViewer Demo',
+                                showAnnotationTool: false
+                            });
+                        }
+                    });
+                    log = true;
+                }
             });
-        </script>
-    </head>
-
-    <body>
-    <div>
-        Username : <input id="username" type="text"> Password : <input id="password" type="password">
-        <button id="login">login</button>
-        <button id="logout">logout</button>
-    </div>
-    <div style="background-color:bisque;" id="myDiv"></div>
-    </body>
+            $('#logout').click(function () {location.reload();})
+        });
+    </script>
+</head>
+<body>
+<div>
+    Username : <input id="username" type="text"> Password : <input id="password" type="password">
+    <button id="login">login</button>
+    <button id="logout">logout</button>
+</div>
+<div style="background-color:bisque;" id="myDiv"></div>
+</body>
 </html>
