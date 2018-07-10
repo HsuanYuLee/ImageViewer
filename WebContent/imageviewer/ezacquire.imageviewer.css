@@ -4,25 +4,10 @@
  * Include this stylesheet in your site or copy and paste the styles below into your stylesheet - jScrollPane
  * may not operate correctly without them.
  */
-div:focus 
-{
-    outline: none;
-}
-
-.btn-default 
-{
-    background-color: white;
-}
-
-.btn-active 
-{
-    background-color: red;
-}
-
 
 .jspContainer
 {
-	overflow: hidden;
+    overflow: hidden;
 	position: relative;
     outline: none;
     /*z-index: 1;*/
