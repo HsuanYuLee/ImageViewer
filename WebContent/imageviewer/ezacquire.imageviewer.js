@@ -117,8 +117,6 @@
                     for (let i = 0; i < $importVariable.imageInfo.length; i++) {
                         $viewers.push({
                             _docUrl : null,
-                            docUrl : null,
-                            tiff : [],
                             _tiff : null,
                             _minScale: null,
                             _currentScale: null,
@@ -469,44 +467,6 @@
         loadImage: function(docObject, viewNo) {
             $viewers[viewNo]._rotate = 0;
             if (docObject.showAnnotationTool) { $innerFunction.loadAnnotation(); }
-
-            /*
-            for (let i=0;i<$importVariable.imageInfo[viewNo].totalPage; i++) {
-                let url = docObject.imageServerUrl+'?docId='+docObject.imageInfo[viewNo].docId+'&currentPage='+i+'&type=tiff';
-                $viewers[viewNo].docUrl[i] = url;
-                let xhr = new XMLHttpRequest();
-                xhr.open('GET', url);
-                xhr.responseType = 'arraybuffer';
-                xhr.onload = function () {
-                    let t0 = performance.now();
-                    $viewers[viewNo].tiff[i] = new Tiff({buffer: xhr.response});
-                    $viewers[viewNo]._oriImageWidth = $viewers[viewNo].tiff[i].width(); $viewers[viewNo]._oriImageHeight = $viewers[viewNo].tiff[i].height();
-                    $viewers[viewNo]._imageWidth = $viewers[viewNo]._oriImageWidth;   $viewers[viewNo]._imageHeight = $viewers[viewNo]._oriImageHeight;
-
-                    $imageCanvas[viewNo].width = $viewers[viewNo]._imageWidth ;       $imageCanvas[viewNo].height = $viewers[viewNo]._imageHeight;
-                    $tempCanvas[viewNo].width = $viewers[viewNo]._imageWidth;         $tempCanvas[viewNo].height = $viewers[viewNo]._imageHeight;
-                    $annotationCanvas[viewNo].width = $viewers[viewNo]._imageWidth ;  $annotationCanvas[viewNo].height = $viewers[viewNo]._imageHeight;
-                    $viewers[viewNo]._centerX = $viewers[viewNo]._imageWidth / 2;     $viewers[viewNo]._centerY = $viewers[viewNo]._imageHeight / 2;
-
-                    let scale_w = docObject.imageInfo[viewNo].viewerWidth / $viewers[viewNo]._imageWidth;
-                    let scale_h = docObject.imageInfo[viewNo].viewerHeight / $viewers[viewNo]._imageHeight;
-                    $viewers[viewNo]._minScale = scale_h < scale_w ? scale_h : scale_w;
-
-                    $image[viewNo] = new Image();
-                    $image[viewNo].src = $viewers[viewNo]._tiff.toDataURL();
-                    $image[viewNo].onload = function () {
-                        var t1 = performance.now();
-                        console.log('Load image decode tiff, took t1-t0 '+(t1 - t0)+' milliseconds.');
-                        var ctx = $imageCanvas[viewNo].getContext('2d');
-                        ctx.drawImage($image[viewNo], 0, 0);
-                        $innerFunction.scale(docObject.initDisplayMode, viewNo);
-                        var t2 = performance.now();
-                        console.log('Load image all done, took t2-t0 '+(t2 - t0)+' milliseconds.');
-                    };
-                };
-                xhr.send();
-            }
-             */
 
             let url = docObject.imageServerUrl+'?docId='+docObject.imageInfo[viewNo].docId+'&currentPage='+docObject.imageInfo[viewNo].currentPage+'&type=tiff';
             //let url = docObject.imageServerUrl;
