@@ -16,22 +16,6 @@
         $(function() {
             var log = false;
             $('#login').click(function() {
-
-                /*
-                myViewer = $('#myDiv').imageviewer({
-                    width: 750, height: 600,
-                    minWidth: 750,
-                    closeMaxAndUnmax: true,
-                    imageServerUrl: './images/test.tif',
-                    imageInfo: [
-                        { docId: '27895', formId: '', currentPage: '1', viewPage : '', totalPage: '4'},
-                    ],
-                    initDisplayMode : 3,
-                    waterMarkText: '中文 ImageViewer Demo',
-                    showAnnotationTool: false
-                });
-                $('#moveTo').css('display','block');
-                 */
                 if (!log) {
                     $.ajax({
                         type : 'POST',
@@ -46,7 +30,6 @@
                                 minWidth: 750,
                                 closeMaxAndUnmax: true,
                                 imageServerUrl: 'http://localhost:8083/ImageViewer/imageServlet',
-                                //imageServerUrl: './images/test.tif',
                                 imageInfo: [
                                     { docId: '27895', formId: '', currentPage: '1', viewPage : '', totalPage: '4'},
                                 ],
@@ -62,8 +45,8 @@
             });
             $('#logout').click(function () {location.reload();});
 
-            $('#moveTo-1').click(function (){ moveTo(0, 27895, 1, 165, 180, 350, 75) });
-            $('#moveTo-2').click(function (){ moveTo(0, 27895, 3, 95, 305, 195, 70) });
+            $('#moveTo-1').click(function (){ moveTo(0, 27895, 1, 2715, 385, 255, 65) });
+            $('#moveTo-2').click(function (){ moveTo(0, 27895, 3, 2715, 385, 255, 65) });
         });
 
         function moveTo(viewNo, docNo, page, x, y, width, height) {
