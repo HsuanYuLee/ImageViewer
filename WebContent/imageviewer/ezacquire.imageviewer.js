@@ -281,7 +281,7 @@
             if ($variable.showToolBar) {
                 $('#'+$variable._wapperId+'-btnFitHeight-'+viewNo).click(function () {
                     $viewers[viewNo].displayMode = DisplayMode.fitHeight;
-                    $innerFunction.scale($viewers[viewNo].displayMode, viewNo, );
+                    $innerFunction.scale($viewers[viewNo].displayMode, viewNo);
                 });
                 $('#'+$variable._wapperId+'-btnFitWidth-'+viewNo).click(function () {
                     $viewers[viewNo].displayMode = DisplayMode.fitWidth;
