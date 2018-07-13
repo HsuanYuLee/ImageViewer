@@ -120,6 +120,7 @@
                             image : [],
                             firstLoad : true,
                             canvasDisplayWidth: null, canvasDisplayHeight: null,
+                            currentScale: null,
                             totalRotate: 0,
                             displayMode: $importVariable.initDisplayMode,
                             mouseMode: null,
@@ -141,7 +142,6 @@
                                 tiff : null,
                                 image : null,
                                 minScale: null,
-                                currentScale: null,
                                 oriImageWidth : null,     oriImageHeight : null,
                                 imageWidth: null,         imageHeight: null,
                                 centerX: null,            centerY: null,
@@ -281,29 +281,30 @@
             if ($variable.showToolBar) {
                 $('#'+$variable._wapperId+'-btnFitHeight-'+viewNo).click(function () {
                     $viewers[viewNo].displayMode = DisplayMode.fitHeight;
-                    $innerFunction.scale($viewers[viewNo].displayMode, viewNo);
+                    $innerFunction.scale($viewers[viewNo].displayMode, viewNo, imageNo);
                 });
                 $('#'+$variable._wapperId+'-btnFitWidth-'+viewNo).click(function () {
                     $viewers[viewNo].displayMode = DisplayMode.fitWidth;
-                    $innerFunction.scale($viewers[viewNo].displayMode, viewNo);
+                    $innerFunction.scale($viewers[viewNo].displayMode, viewNo, imageNo);
                 });
                 $('#'+$variable._wapperId+'-btnFullSize-'+viewNo).click(function () {
                     $viewers[viewNo].displayMode = DisplayMode.fullSize;
-                    $innerFunction.scale($viewers[viewNo].displayMode, viewNo);
+                    $innerFunction.scale($viewers[viewNo].displayMode, viewNo, imageNo);
                 });
                 $('#'+$variable._wapperId+'-btnZoomIn-'+viewNo).click(function () {
-                    $innerFunction.scale(DisplayMode.zoomIn, viewNo);
+                    $innerFunction.scale(DisplayMode.zoomIn, viewNo, imageNo);
                 });
                 $('#'+$variable._wapperId+'-btnZoomOut-'+viewNo).click(function () {
-                    $innerFunction.scale(DisplayMode.zoomOut, viewNo);
+                    $innerFunction.scale(DisplayMode.zoomOut, viewNo, imageNo);
                 });
                 $('#'+$variable._wapperId+'-btnRotateCW-'+viewNo).click(function () {
-                    $innerFunction.rotate(90, viewNo);
+                    $innerFunction.rotate(90, viewNo, imageNo);
                 });
                 $('#'+$variable._wapperId+'-btnRotateCCW-'+viewNo).click(function () {
-                    $innerFunction.rotate(-90, viewNo);
+                    $innerFunction.rotate(-90, viewNo, imageNo);
                 });
 
+                /*
                 $('#'+$variable._wapperId+'-btnShowAnno-'+viewNo).click(function () {
                     $variable._showAnnotation = true;
                     $('#'+$variable._wapperId+'-btnShowAnno-'+viewNo).hide();
@@ -327,6 +328,7 @@
                         $('#'+$variable._wapperId+'-btnEditAnno-'+viewNo).addClass("btn-default").removeClass("btn-active");
                     }
                 });
+                */
 
                 $('#'+$variable._wapperId+'-btnPrev-'+viewNo).click(function () {
                     $importVariable.imageInfo[viewNo].currentPage--;
@@ -523,7 +525,7 @@
 
             let ctx = $imageCanvas[viewNo].getContext('2d');
             ctx.drawImage($viewers[viewNo].image[imageNo].image, 0, 0);
-            $innerFunction.scale($importVariable.initDisplayMode, viewNo);
+            //$innerFunction.scale($importVariable.initDisplayMode, viewNo);
             console.log('drawing image '+imageNo);
         },
 
@@ -536,68 +538,74 @@
             ];
         },
 
-        scale: function(displayMode, viewNo) {
+        scale: function(displayMode, viewNo, imageNo) {
             switch (displayMode) {
-                case DisplayMode.fitWidth:
-                    $viewers[viewNo]._currentScale = $importVariable.imageInfo[viewNo].viewerWidth / $viewers[viewNo]._imageWidth;
-                    break;
                 case DisplayMode.fitHeight:
-                    $viewers[viewNo]._currentScale = $importVariable.imageInfo[viewNo].viewerHeight / $viewers[viewNo]._imageHeight;
+                    $viewers[viewNo].currentScale = $importVariable.imageInfo[viewNo].viewerHeight / $viewers[viewNo].image[imageNo].imageHeight;
+                    break;
+                case DisplayMode.fitWidth:
+                    $viewers[viewNo].currentScale = $importVariable.imageInfo[viewNo].viewerWidth / $viewers[viewNo].image[imageNo].imageWidth;
                     break;
                 case DisplayMode.FitWindow:
                     let scale1, scale2;
-                    scale1 = $importVariable.imageInfo[viewNo].viewerWidth / $viewers[viewNo]._imageWidth;
-                    scale2 = $importVariable.imageInfo[viewNo].viewerHeight / $viewers[viewNo]._imageHeight;
-                    $viewers[viewNo]._currentScale = scale1 < scale2 ? scale1 : scale2;
+                    scale1 = $importVariable.imageInfo[viewNo].viewerWidth / $viewers[viewNo].image[imageNo].imageWidth;
+                    scale2 = $importVariable.imageInfo[viewNo].viewerHeight / $viewers[viewNo].image[imageNo].imageHeight;
+                    $viewers[viewNo].currentScale = scale1 < scale2 ? scale1 : scale2;
                     break;
                 case DisplayMode.fullSize:
-                    $viewers[viewNo]._currentScale = 1;
+                    $viewers[viewNo].currentScale = 1;
                     break;
                 case DisplayMode.zoomIn:
-                    $viewers[viewNo]._currentScale += $variable._scaleDistance;
-                    $viewers[viewNo]._currentScale = $viewers[viewNo]._currentScale > 1 ? 1 : $viewers[viewNo]._currentScale;
+                    $viewers[viewNo].currentScale += $variable._scaleDistance;
+                    $viewers[viewNo].currentScale = $viewers[viewNo].currentScale > 1 ? 1 : $viewers[viewNo].currentScale;
                     break;
                 case DisplayMode.zoomOut:
-                    $viewers[viewNo]._currentScale -= $variable._scaleDistance;
-                    $viewers[viewNo]._currentScale = $viewers[viewNo]._currentScale < $viewers[viewNo]._minScale ? $viewers[viewNo]._minScale : $viewers[viewNo]._currentScale;
+                    $viewers[viewNo].currentScale -= $variable._scaleDistance;
+                    $viewers[viewNo].currentScale = $viewers[viewNo].currentScale < $viewers[viewNo].image[imageNo].minScale ? $viewers[viewNo].image[imageNo].minScale : $viewers[viewNo].currentScale;
                     break;
             }
-            $innerFunction._calcInScale(viewNo);
-            $innerFunction.resetCanvas(viewNo);
+
+            $innerFunction._calcInScale(viewNo, imageNo);
+            $innerFunction.resetCanvas(viewNo, imageNo);
         },
 
-        rotate: function(degree, viewNo) {
+        rotate: function(degree, viewNo, imageNo) {
             $viewers[viewNo].totalRotate += degree;
-            $viewers[viewNo]._imageHeight = [$viewers[viewNo]._imageHeight, $viewers[viewNo]._imageWidth];
-            $viewers[viewNo]._imageWidth = $viewers[viewNo]._imageHeight[0];
-            $viewers[viewNo]._imageHeight = $viewers[viewNo]._imageHeight[1];
+            $viewers[viewNo].image[imageNo].imageHeight = [$viewers[viewNo].image[imageNo].imageHeight, $viewers[viewNo].image[imageNo].imageWidth];
+            $viewers[viewNo].image[imageNo].imageWidth = $viewers[viewNo].image[imageNo].imageHeight[0];
+            $viewers[viewNo].image[imageNo].imageHeight = $viewers[viewNo].image[imageNo].imageHeight[1];
 
-            let scale_w = $importVariable.imageInfo[viewNo].viewerWidth / $viewers[viewNo]._imageWidth;
-            let scale_h = $importVariable.imageInfo[viewNo].viewerHeight / $viewers[viewNo]._imageHeight;
-            $viewers[viewNo]._minScale = scale_h < scale_w ? scale_h : scale_w;
+            let scale_w = $importVariable.imageInfo[viewNo].viewerWidth / $viewers[viewNo].image[imageNo].imageWidth;
+            let scale_h = $importVariable.imageInfo[viewNo].viewerHeight / $viewers[viewNo].image[imageNo].imageHeight;
+            $viewers[viewNo].image[imageNo].minScale = scale_h < scale_w ? scale_h : scale_w;
 
-            $imageCanvas[viewNo].width =      $viewers[viewNo]._imageWidth;    $imageCanvas[viewNo].height =      $viewers[viewNo]._imageHeight;
-            $tempCanvas[viewNo].width =       $viewers[viewNo]._imageWidth;    $tempCanvas[viewNo].height =       $viewers[viewNo]._imageHeight;
-            $annotationCanvas[viewNo].width = $viewers[viewNo]._imageWidth ;   $annotationCanvas[viewNo].height = $viewers[viewNo]._imageHeight;
+            $imageCanvas[viewNo].width =      $viewers[viewNo].image[imageNo].imageWidth;
+            $imageCanvas[viewNo].height =      $viewers[viewNo].image[imageNo].imageHeight;
+            $tempCanvas[viewNo].width =       $viewers[viewNo].image[imageNo].imageWidth;
+            $tempCanvas[viewNo].height =       $viewers[viewNo].image[imageNo].imageHeight;
+            $annotationCanvas[viewNo].width = $viewers[viewNo].image[imageNo].imageWidth;
+            $annotationCanvas[viewNo].height = $viewers[viewNo].image[imageNo].imageHeight;
 
-            $viewers[viewNo]._centerX = $viewers[viewNo]._imageWidth / 2;
-            $viewers[viewNo]._centerY = $viewers[viewNo]._imageHeight / 2;
+            $viewers[viewNo].image[imageNo].centerX = $viewers[viewNo].image[imageNo].imageWidth / 2;
+            $viewers[viewNo].image[imageNo].centerY = $viewers[viewNo].image[imageNo].imageHeight / 2;
 
             let ctx = $imageCanvas[viewNo].getContext('2d');
-            ctx.translate($viewers[viewNo]._centerX, $viewers[viewNo]._centerY);
+            ctx.translate($viewers[viewNo].image[imageNo].centerX, $viewers[viewNo].image[imageNo].centerY);
             ctx.rotate($viewers[viewNo].totalRotate/180*Math.PI);
-            ctx.drawImage($image[viewNo], -$viewers[viewNo]._oriImageWidth/2, -$viewers[viewNo]._oriImageHeight/2);
+            ctx.drawImage($viewers[viewNo].image[imageNo].image, -$viewers[viewNo].image[imageNo].oriImageWidth/2, -$viewers[viewNo].image[imageNo].oriImageHeight/2);
             ctx.rotate(-$viewers[viewNo].totalRotate/180*Math.PI);
-            ctx.translate(-$viewers[viewNo]._centerX, -$viewers[viewNo]._centerY);
+            ctx.translate(-$viewers[viewNo].image[imageNo].centerX, -$viewers[viewNo].image[imageNo].centerY);
 
-            $innerFunction._calcInScale(viewNo);
-            $innerFunction.resetCanvas(viewNo);
+            $innerFunction._calcInScale(viewNo, imageNo);
+            $innerFunction.resetCanvas(viewNo, imageNo);
         },
 
         changePage: function(currentPage, viewNo) {
             $importVariable.imageInfo[viewNo].currentPage = currentPage;
             //$innerFunction.loadImage($importVariable, viewNo);
             $('#dummy-currentPage-'+viewNo).val(currentPage);
+
+            $innerFunction.drawingCanvas(viewNo,currentPage-1);
 
             $('#'+$variable._wapperId+'-btnPrev-'+viewNo).prop('disabled',false);
             $('#'+$variable._wapperId+'-btnNext-'+viewNo).prop('disabled',false);
@@ -637,12 +645,12 @@
             $innerFunction.resetCanvas(viewNo);
         },
 
-        _calcInScale: function(viewNo) {
-            $viewers[viewNo].canvasDisplayWidth = $viewers[viewNo]._imageWidth * $viewers[viewNo]._currentScale;
-            $viewers[viewNo].canvasDisplayHeight = $viewers[viewNo]._imageHeight * $viewers[viewNo]._currentScale;
+        _calcInScale: function(viewNo, imageNo) {
+            $viewers[viewNo].canvasDisplayWidth = $viewers[viewNo].image[imageNo].imageWidth * $viewers[viewNo].currentScale;
+            $viewers[viewNo].canvasDisplayHeight = $viewers[viewNo].image[imageNo].imageHeight * $viewers[viewNo].currentScale;
         },
 
-        resetCanvas: function(viewNo) {
+        resetCanvas: function(viewNo, imageNo) {
             //init scroll
             $imageScrollPaneAPI[viewNo].scrollTo(0,0);
             $tempScrollPaneAPI[viewNo].scrollTo(0,0);
@@ -658,17 +666,17 @@
 
             // move scroll
             if ($imageScrollPaneAPI[viewNo].getContentWidth() > $importVariable.imageInfo[viewNo].viewerWidth) {
-                if ($viewers[viewNo]._centerX * $viewers[viewNo]._currentScale > $importVariable.imageInfo[viewNo].viewerWidth / 2) {
-                    $imageScrollPaneAPI[viewNo].scrollToX($viewers[viewNo]._centerX * $viewers[viewNo]._currentScale - $importVariable.imageInfo[viewNo].viewerWidth / 2);
-                    $tempScrollPaneAPI[viewNo].scrollToX($viewers[viewNo]._centerX * $viewers[viewNo]._currentScale - $importVariable.imageInfo[viewNo].viewerWidth / 2);
-                    $annotationScrollPaneAPI[viewNo].scrollToX($viewers[viewNo]._centerX * $viewers[viewNo]._currentScale - $importVariable.imageInfo[viewNo].viewerWidth / 2);
+                if ($viewers[viewNo].image[imageNo].centerX * $viewers[viewNo].currentScale > $importVariable.imageInfo[viewNo].viewerWidth / 2) {
+                    $imageScrollPaneAPI[viewNo].scrollToX($viewers[viewNo].image[imageNo].centerX * $viewers[viewNo].currentScale - $importVariable.imageInfo[viewNo].viewerWidth / 2);
+                    $tempScrollPaneAPI[viewNo].scrollToX($viewers[viewNo].image[imageNo].centerX * $viewers[viewNo].currentScale - $importVariable.imageInfo[viewNo].viewerWidth / 2);
+                    $annotationScrollPaneAPI[viewNo].scrollToX($viewers[viewNo].image[imageNo].centerX * $viewers[viewNo].currentScale - $importVariable.imageInfo[viewNo].viewerWidth / 2);
                 }
             }
            if ($imageScrollPaneAPI[viewNo].getContentHeight() > $importVariable.imageInfo[viewNo].viewerHeight) {
-               if ($viewers[viewNo]._centerY * $viewers[viewNo]._currentScale > $importVariable.imageInfo[viewNo].viewerHeight / 2) {
-                   $imageScrollPaneAPI[viewNo].scrollToY($viewers[viewNo]._centerY * $viewers[viewNo]._currentScale - $importVariable.imageInfo[viewNo].viewerHeight / 2);
-                   $tempScrollPaneAPI[viewNo].scrollToY($viewers[viewNo]._centerY * $viewers[viewNo]._currentScale - $importVariable.imageInfo[viewNo].viewerHeight / 2);
-                   $annotationScrollPaneAPI[viewNo].scrollToY($viewers[viewNo]._centerY * $viewers[viewNo]._currentScale - $importVariable.imageInfo[viewNo].viewerHeight / 2);
+               if ($viewers[viewNo].image[imageNo].centerY * $viewers[viewNo].currentScale > $importVariable.imageInfo[viewNo].viewerHeight / 2) {
+                   $imageScrollPaneAPI[viewNo].scrollToY($viewers[viewNo].image[imageNo].centerY * $viewers[viewNo].currentScale - $importVariable.imageInfo[viewNo].viewerHeight / 2);
+                   $tempScrollPaneAPI[viewNo].scrollToY($viewers[viewNo].image[imageNo].centerY * $viewers[viewNo].currentScale - $importVariable.imageInfo[viewNo].viewerHeight / 2);
+                   $annotationScrollPaneAPI[viewNo].scrollToY($viewers[viewNo].image[imageNo].centerY * $viewers[viewNo].currentScale - $importVariable.imageInfo[viewNo].viewerHeight / 2);
                }
            }
         },
