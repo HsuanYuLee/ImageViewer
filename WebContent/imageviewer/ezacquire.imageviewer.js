@@ -118,32 +118,35 @@
                         $viewers.push({
 //----------------------------------------------------------------------------------------------------------------------
                             image : [],
+                            firstLoad : true,
                             canvasDisplayWidth: null, canvasDisplayHeight: null,
                             totalRotate: 0,
-                            displayMode: null,
+                            displayMode: $importVariable.initDisplayMode,
                             mouseMode: null,
                             annoMode: null,
                             maxClicked: true,
 //----------------------------------------------------------------------------------------------------------------------
-                            _docUrl : null,
-                            _tiff : null,
-                            _minScale: null,
-                            _currentScale: null,
-                            _oriImageWidth : null,     _oriImageHeight : null,
-                            _imageWidth: null,         _imageHeight: null,
-                            _centerX: null,            _centerY: null,
+                            //_docUrl : null,
+                            //_tiff : null,
+                            //_minScale: null,
+                            //_currentScale: null,
+                            //_oriImageWidth : null,     _oriImageHeight : null,
+                            //_imageWidth: null,         _imageHeight: null,
+                            //_centerX: null,            _centerY: null,
                         });
 
                         for (let j = 0; j < $importVariable.imageInfo[i].totalPage; j++) {
                             $viewers[i].image.push({
                                 docUrl : $importVariable.imageServerUrl+'?docId='+$importVariable.imageInfo[i].docId+'&currentPage='+(j+1)+'&type=tiff',
                                 tiff : null,
+                                image : null,
                                 minScale: null,
                                 currentScale: null,
                                 oriImageWidth : null,     oriImageHeight : null,
                                 imageWidth: null,         imageHeight: null,
                                 centerX: null,            centerY: null,
                             });
+                            $innerFunction.loadData($viewers[i].image[j].docUrl,i,j);
                         }
                     }
                 }
@@ -151,7 +154,7 @@
                 $importVariable.imageInfo[viewNo].viewerWidth = $importVariable.width;
                 $importVariable.imageInfo[viewNo].viewerHeight = $importVariable.height;
                 $('#'+$variable._wapperId).append('<div id=View-'+viewNo+'></div>');
-                $innerFunction.renderAndComponentViewer(viewNo);
+                $innerFunction.renderAndComponentViewer(viewNo, 0);
 
                 if ($importVariable.closeMaxAndUnmax) {
                     $('#'+$variable._wapperId+'-btnUnMax-'+viewNo).hide();
@@ -176,7 +179,7 @@
             if(page !== parseInt($('#dummy-currentPage-'+viewNo).val()))
             {
                 $importVariable.imageInfo[viewNo].currentPage = page;
-                $innerFunction.loadImage($importVariable, viewNo);
+                //$innerFunction.loadImage($importVariable, viewNo);
                 $innerFunction.changePage(page,viewNo);
                 setTimeout(function () {$innerFunction.zoomArea(x, y, width, height, viewNo);},2000);
             } else {
@@ -187,7 +190,8 @@
 //----------------------------------------------------------------------------------------------------------------------
 //Inner Functions
     let $innerFunction = {
-        renderAndComponentViewer: function(viewNo) {
+        renderAndComponentViewer: function(viewNo, imageNo) {
+            let pageNo = imageNo+1;
     //---------------------------------------------------------------------------------------------------------------------
     //render toolBar
             if ($variable.showToolBar) {
@@ -269,15 +273,15 @@
                 .jScrollPane({ showArrows: false })
                 .data('jsp');
 
-            $innerFunction.loadImage($importVariable, viewNo);
-            $('#dummy-currentPage-'+viewNo).val($importVariable.imageInfo[viewNo].currentPage);
+            $('#dummy-currentPage-'+viewNo).val(pageNo);
             $('#dummy-totalPage-'+viewNo).html(' /'+$importVariable.imageInfo[viewNo].totalPage);
-            if ($importVariable.imageInfo[viewNo].currentPage === '1') {$('#'+$variable._wapperId+'-btnPrev-'+viewNo).prop('disabled',true);}
-    //set toolbar component
+            if (pageNo === '1') {$('#'+$variable._wapperId+'-btnPrev-'+viewNo).prop('disabled',true);}
+
+            //set toolbar component
             if ($variable.showToolBar) {
                 $('#'+$variable._wapperId+'-btnFitHeight-'+viewNo).click(function () {
                     $viewers[viewNo].displayMode = DisplayMode.fitHeight;
-                    $innerFunction.scale($viewers[viewNo].displayMode, viewNo);
+                    $innerFunction.scale($viewers[viewNo].displayMode, viewNo, );
                 });
                 $('#'+$variable._wapperId+'-btnFitWidth-'+viewNo).click(function () {
                     $viewers[viewNo].displayMode = DisplayMode.fitWidth;
@@ -470,61 +474,57 @@
             });
         },
 
-        loadImage: function(docObject, viewNo) {
-            $viewers[viewNo].totalRotate = 0;
-            if (docObject.showAnnotationTool) { $innerFunction.loadAnnotation(); }
-
-            let url = docObject.imageServerUrl+'?docId='+docObject.imageInfo[viewNo].docId+'&currentPage='+docObject.imageInfo[viewNo].currentPage+'&type=tiff';
-            //let url = docObject.imageServerUrl;
-
-            if (url !== $viewers[viewNo]._docUrl) {
-
-                $viewers[viewNo]._docUrl = url;
-                let xhr = new XMLHttpRequest();
-                xhr.open('GET', url);
-                xhr.responseType = 'arraybuffer';
+        loadData: function(url, viewNo, imageNo) {
+            let xhr = new XMLHttpRequest();
+            xhr.open('GET', url);
+            xhr.responseType = 'arraybuffer';
                 xhr.onload = function () {
-                    let t0 = performance.now();
-                    $viewers[viewNo]._tiff = new Tiff({buffer: xhr.response});
-                    $viewers[viewNo]._oriImageWidth = $viewers[viewNo]._tiff.width(); $viewers[viewNo]._oriImageHeight = $viewers[viewNo]._tiff.height();
-                    $viewers[viewNo]._imageWidth = $viewers[viewNo]._oriImageWidth;   $viewers[viewNo]._imageHeight = $viewers[viewNo]._oriImageHeight;
+                    $viewers[viewNo].image[imageNo].tiff = new Tiff({buffer: xhr.response});
+                    $viewers[viewNo].image[imageNo].oriImageWidth = $viewers[viewNo].image[imageNo].tiff.width();
+                    $viewers[viewNo].image[imageNo].oriImageHeight = $viewers[viewNo].image[imageNo].tiff.height();
+                    $viewers[viewNo].image[imageNo].imageWidth = $viewers[viewNo].image[imageNo].oriImageWidth;
+                    $viewers[viewNo].image[imageNo].imageHeight = $viewers[viewNo].image[imageNo].oriImageHeight;
 
-                    $imageCanvas[viewNo].width = $viewers[viewNo]._imageWidth ;       $imageCanvas[viewNo].height = $viewers[viewNo]._imageHeight;
-                    $tempCanvas[viewNo].width = $viewers[viewNo]._imageWidth;         $tempCanvas[viewNo].height = $viewers[viewNo]._imageHeight;
-                    $annotationCanvas[viewNo].width = $viewers[viewNo]._imageWidth ;  $annotationCanvas[viewNo].height = $viewers[viewNo]._imageHeight;
-                    $viewers[viewNo]._centerX = $viewers[viewNo]._imageWidth / 2;     $viewers[viewNo]._centerY = $viewers[viewNo]._imageHeight / 2;
+                    $viewers[viewNo].image[imageNo].centerX = $viewers[viewNo].image[imageNo].imageWidth / 2;
+                    $viewers[viewNo].image[imageNo].centerY = $viewers[viewNo].image[imageNo].imageHeight / 2;
 
-                    let scale_w = docObject.imageInfo[viewNo].viewerWidth / $viewers[viewNo]._imageWidth;
-                    let scale_h = docObject.imageInfo[viewNo].viewerHeight / $viewers[viewNo]._imageHeight;
-                    $viewers[viewNo]._minScale = scale_h < scale_w ? scale_h : scale_w;
+                    let scale_w = $importVariable.imageInfo[viewNo].viewerWidth / $viewers[viewNo].image[imageNo].imageWidth;
+                    let scale_h = $importVariable.imageInfo[viewNo].viewerHeight / $viewers[viewNo].image[imageNo].imageHeight;
+                    $viewers[viewNo].image[imageNo].minScale = scale_h < scale_w ? scale_h : scale_w;
 
-                    $image[viewNo] = new Image();
-                    $image[viewNo].src = $viewers[viewNo]._tiff.toDataURL();
-                    $image[viewNo].onload = function () {
-                        let t1 = performance.now();
-                        console.log('Load image decode tiff, took t1-t0 '+(t1 - t0)+' milliseconds.');
-                        let ctx = $imageCanvas[viewNo].getContext('2d');
-                        ctx.drawImage($image[viewNo], 0, 0);
-                        $innerFunction.scale(docObject.initDisplayMode, viewNo);
-                        let t2 = performance.now();
-                        console.log('Load image all done, took t2-t0 '+(t2 - t0)+' milliseconds.');
+                    $viewers[viewNo].image[imageNo].image = new Image();
+                    $viewers[viewNo].image[imageNo].image.src = $viewers[viewNo].image[imageNo].tiff.toDataURL();
+
+                    $viewers[viewNo].image[imageNo].image.onload = function () {
+                        if ($viewers[viewNo].firstLoad) {
+                            $viewers[viewNo].firstLoad = false;
+                            $innerFunction.drawingCanvas(viewNo, 0);
+                            console.log('drawing viewer '+viewNo);
+                        }
                     };
                 };
                 xhr.send();
-            } else {
-                $imageCanvas[viewNo].width = $viewers[viewNo]._imageWidth ;       $imageCanvas[viewNo].height = $viewers[viewNo]._imageHeight;
-                $tempCanvas[viewNo].width = $viewers[viewNo]._imageWidth;         $tempCanvas[viewNo].height = $viewers[viewNo]._imageHeight;
-                $annotationCanvas[viewNo].width = $viewers[viewNo]._imageWidth ;  $annotationCanvas[viewNo].height = $viewers[viewNo]._imageHeight;
 
-                let ctx = $imageCanvas[viewNo].getContext('2d');
-                ctx.drawImage($image[viewNo], 0, 0);
-                $innerFunction.scale(docObject.initDisplayMode, viewNo);
-            }
+                /*
+                // 如果要顯示 annotation, 就把 annotation 畫出來
+                if ($variable._showAnnotation) {
+                    $innerFunction._redrawAnnotationCanvas(viewNo);
+                }
+                */
+        },
 
-            // 如果要顯示 annotation, 就把 annotation 畫出來
-            if ($variable._showAnnotation) {
-                $innerFunction._redrawAnnotationCanvas(viewNo);
-            }
+        drawingCanvas: function(viewNo, imageNo) {
+            $imageCanvas[viewNo].width = $viewers[viewNo].image[imageNo].imageWidth ;
+            $imageCanvas[viewNo].height = $viewers[viewNo].image[imageNo].imageHeight;
+            $tempCanvas[viewNo].width = $viewers[viewNo].image[imageNo].imageWidth;
+            $tempCanvas[viewNo].height = $viewers[viewNo].image[imageNo].imageHeight;
+            $annotationCanvas[viewNo].width = $viewers[viewNo].image[imageNo].imageWidth ;
+            $annotationCanvas[viewNo].height = $viewers[viewNo].image[imageNo].imageHeight;
+
+            let ctx = $imageCanvas[viewNo].getContext('2d');
+            ctx.drawImage($viewers[viewNo].image[imageNo].image, 0, 0);
+            $innerFunction.scale($importVariable.initDisplayMode, viewNo);
+            console.log('drawing image '+imageNo);
         },
 
         loadAnnotation: function() {
@@ -563,7 +563,7 @@
                     break;
             }
             $innerFunction._calcInScale(viewNo);
-            $innerFunction._draw(viewNo);
+            $innerFunction.resetCanvas(viewNo);
         },
 
         rotate: function(degree, viewNo) {
@@ -591,13 +591,12 @@
             ctx.translate(-$viewers[viewNo]._centerX, -$viewers[viewNo]._centerY);
 
             $innerFunction._calcInScale(viewNo);
-            $innerFunction._draw(viewNo);
-            console.log($viewers[viewNo].totalRotate);
+            $innerFunction.resetCanvas(viewNo);
         },
 
         changePage: function(currentPage, viewNo) {
             $importVariable.imageInfo[viewNo].currentPage = currentPage;
-            $innerFunction.loadImage($importVariable, viewNo);
+            //$innerFunction.loadImage($importVariable, viewNo);
             $('#dummy-currentPage-'+viewNo).val(currentPage);
 
             $('#'+$variable._wapperId+'-btnPrev-'+viewNo).prop('disabled',false);
@@ -635,7 +634,7 @@
             $viewers[viewNo]._currentScale = $viewers[viewNo]._currentScale > 1 ? 1 : $viewers[viewNo]._currentScale;
 
             $innerFunction._calcInScale(viewNo);
-            $innerFunction._draw(viewNo);
+            $innerFunction.resetCanvas(viewNo);
         },
 
         _calcInScale: function(viewNo) {
@@ -643,26 +642,19 @@
             $viewers[viewNo].canvasDisplayHeight = $viewers[viewNo]._imageHeight * $viewers[viewNo]._currentScale;
         },
 
-        _draw: function(viewNo) {
+        resetCanvas: function(viewNo) {
             //init scroll
-            $imageScrollPaneAPI[viewNo].scrollToX(0);
-            $tempScrollPaneAPI[viewNo].scrollToX(0);
-            $annotationScrollPaneAPI[viewNo].scrollToX(0);
+            $imageScrollPaneAPI[viewNo].scrollTo(0,0);
+            $tempScrollPaneAPI[viewNo].scrollTo(0,0);
+            $annotationScrollPaneAPI[viewNo].scrollTo(0,0);
 
-            $imageScrollPaneAPI[viewNo].scrollToY(0);
-            $tempScrollPaneAPI[viewNo].scrollToY(0);
-            $annotationScrollPaneAPI[viewNo].scrollToY(0);
-
-            // draw image
-            console.log("-------------------------------------------");
+            // reset canvas
             $imageCanvas[viewNo].setAttribute('style','width:'+$viewers[viewNo].canvasDisplayWidth+'px; height:'+$viewers[viewNo].canvasDisplayHeight+'px; margin:0px; z-index: 1');
             $imageScrollPaneAPI[viewNo].reinitialise();
             $tempCanvas[viewNo].setAttribute('style','width:'+$viewers[viewNo].canvasDisplayWidth+'px; height:'+$viewers[viewNo].canvasDisplayHeight+'px; margin:0px; z-index: 3');
             $tempScrollPaneAPI[viewNo].reinitialise();
             $annotationCanvas[viewNo].setAttribute('style','width:'+$viewers[viewNo].canvasDisplayWidth+'px; height:'+$viewers[viewNo].canvasDisplayHeight+'px; margin:0px; z-index: 4');
             $annotationScrollPaneAPI[viewNo].reinitialise();
-
-
 
             // move scroll
             if ($imageScrollPaneAPI[viewNo].getContentWidth() > $importVariable.imageInfo[viewNo].viewerWidth) {
@@ -672,9 +664,6 @@
                     $annotationScrollPaneAPI[viewNo].scrollToX($viewers[viewNo]._centerX * $viewers[viewNo]._currentScale - $importVariable.imageInfo[viewNo].viewerWidth / 2);
                 }
             }
-
-
-
            if ($imageScrollPaneAPI[viewNo].getContentHeight() > $importVariable.imageInfo[viewNo].viewerHeight) {
                if ($viewers[viewNo]._centerY * $viewers[viewNo]._currentScale > $importVariable.imageInfo[viewNo].viewerHeight / 2) {
                    $imageScrollPaneAPI[viewNo].scrollToY($viewers[viewNo]._centerY * $viewers[viewNo]._currentScale - $importVariable.imageInfo[viewNo].viewerHeight / 2);
@@ -682,9 +671,6 @@
                    $annotationScrollPaneAPI[viewNo].scrollToY($viewers[viewNo]._centerY * $viewers[viewNo]._currentScale - $importVariable.imageInfo[viewNo].viewerHeight / 2);
                }
            }
-
-
-
         },
 
         _drawWaterMark: function(viewNo) {
