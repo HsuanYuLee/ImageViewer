@@ -27,7 +27,7 @@
                         success : function () {
                             myViewer = $('#myDiv').imageviewer({
                                 width: 1500, height: 600,
-                                minWidth: 750,
+                                minWidth: 800,
                                 closeMaxAndUnmax: false,
                                 imageServerUrl: 'http://localhost:8083/ImageViewer/imageServlet',
                                 imageInfo: [
@@ -35,8 +35,7 @@
                                     { docId: '27895', formId: '', currentPage: '1', viewPage : '', totalPage: '4'},
                                     { docId: '28115', formId: '', currentPage: '1', viewPage : '', totalPage: '2'},
                                 ],
-                                //DisplayMode : { fitWidth: 0, fitHeight: 1, FitWindow: 2, fullSize: 3 };
-                                initDisplayMode : 0,
+                                initDisplayMode : 3,
                                 waterMarkText: '中文 ImageViewer Demo',
                                 showAnnotationTool: false
                             });
