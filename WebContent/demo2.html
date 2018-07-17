@@ -46,7 +46,8 @@
             $('#logout').click(function () {location.reload();});
 
             $('#moveTo-1').click(function (){ moveTo(0, 27895, 1, 2715, 385, 255, 65) });
-            $('#moveTo-2').click(function (){ moveTo(0, 27895, 3, 2715, 385, 255, 65) });
+            $('#moveTo-2').click(function (){ moveTo(0, 27895, 1, 2630, 310, 400, 70) });
+            $('#moveTo-3').click(function (){ moveTo(0, 27895, 3, 2715, 385, 255, 65) });
         });
 
         function moveTo(viewNo, docNo, page, x, y, width, height) {
@@ -64,7 +65,8 @@
 <div style="background-color:bisque; position: absolute" id="myDiv"></div>
 <div id="moveTo" style="width: 750px; height: 600px; position: absolute; left: 758px; margin: 20px 0 0 10px; z-index: 1; display: none">
     <span>P1. 頁數 : <input id="moveTo-1" type="text"></span><p>
-    <span>P3. 頁數 : <input id="moveTo-2" type="text"></span><p>
+    <span>P1. 列印人員 : <input id="moveTo-2" type="text"></span><p>
+    <span>P3. 頁數 : <input id="moveTo-3" type="text"></span><p>
 </div>
 </body>
 </html>

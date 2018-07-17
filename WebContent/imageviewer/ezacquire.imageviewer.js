@@ -117,22 +117,18 @@
                     for (let i = 0; i < $importVariable.imageInfo.length; i++) {
                         $viewers.push({
                             _docUrl : null,
-                            docUrl : null,
-                            tiff : [],
                             _tiff : null,
                             _minScale: null,
                             _currentScale: null,
-                            _oriImageWidth : null,  _oriImageHeight : null,
+                            _oriImageWidth : null,     _oriImageHeight : null,
                             _imageWidth: null,         _imageHeight: null,
                             _centerX: null,            _centerY: null,
                             _canvasDisplayWidth: null, _canvasDisplayHeight: null,
-                            _newX: null,               _newY: null,
                             _rotate: null,
                             _displayMode: null,
                             _mouseMode: null,
                             _annoMode: null,
                             _maxClicked: true,
-                            _unMaxClicked: null,
                         });
                     }
                 }
@@ -156,6 +152,7 @@
     let $function = {
         moveTo: function(viewNo, docNo, page, x, y, width, height) {
 
+            let fromMoveTo = true;
 
             $moveTo.viewNo = viewNo;  $moveTo.docNo = docNo;  $moveTo.page = page;
             $moveTo.x = x;            $moveTo.y = y;
@@ -164,9 +161,7 @@
             if(page !== parseInt($('#dummy-currentPage-'+viewNo).val()))
             {
                 $importVariable.imageInfo[viewNo].currentPage = page;
-                $innerFunction.loadImage($importVariable, viewNo);
-                $innerFunction.changePage(page,viewNo);
-                setTimeout(function () {$innerFunction.zoomArea(x, y, width, height, viewNo);},2000);
+                $innerFunction.changePage(page, viewNo, fromMoveTo);
             } else {
                 $innerFunction.zoomArea(x, y, width, height, viewNo);
             }
@@ -257,7 +252,8 @@
                 .jScrollPane({ showArrows: false })
                 .data('jsp');
 
-            $innerFunction.loadImage($importVariable, viewNo);
+            $innerFunction.loadImage($importVariable, viewNo, false);
+
             $('#dummy-currentPage-'+viewNo).val($importVariable.imageInfo[viewNo].currentPage);
             $('#dummy-totalPage-'+viewNo).html(' /'+$importVariable.imageInfo[viewNo].totalPage);
             if ($importVariable.imageInfo[viewNo].currentPage === '1') {$('#'+$variable._wapperId+'-btnPrev-'+viewNo).prop('disabled',true);}
@@ -314,12 +310,12 @@
 
                 $('#'+$variable._wapperId+'-btnPrev-'+viewNo).click(function () {
                     $importVariable.imageInfo[viewNo].currentPage--;
-                    $innerFunction.changePage($importVariable.imageInfo[viewNo].currentPage, viewNo);
+                    $innerFunction.changePage($importVariable.imageInfo[viewNo].currentPage, viewNo, false);
                 });
 
                 $('#'+$variable._wapperId+'-btnNext-'+viewNo).click(function () {
                     $importVariable.imageInfo[viewNo].currentPage++;
-                    $innerFunction.changePage($importVariable.imageInfo[viewNo].currentPage, viewNo);
+                    $innerFunction.changePage($importVariable.imageInfo[viewNo].currentPage, viewNo, false);
                 });
 
                 $('#'+$variable._wapperId+'-btnUnMax-'+viewNo).click(function () {
@@ -329,7 +325,6 @@
 
                     $('#'+$variable._wapperId+'-btnUnMax-'+viewNo).hide();
                     $('#'+$variable._wapperId+'-btnMax-'+viewNo).show();
-                    $viewers[viewNo]._unMaxClicked = true;
                     $viewers[viewNo]._maxClicked = false;
                 });
 
@@ -341,7 +336,6 @@
                     $('#'+$variable._wapperId+'-btnMax-'+viewNo).hide();
                     $('#'+$variable._wapperId+'-btnUnMax-'+viewNo).show();
                     $viewers[viewNo]._maxClicked = true;
-                    $viewers[viewNo]._unMaxClicked = false;
                 });
 
                 $('#dummy-currentPage-'+viewNo).keypress(function (e) {
@@ -354,7 +348,7 @@
                             $('#dummy-currentPage-'+viewNo).val(currentPage);
                             $importVariable.imageInfo[viewNo].currentPage = currentPage;
                         }
-                        $innerFunction.changePage(currentPage,viewNo);
+                        $innerFunction.changePage(currentPage, viewNo, false);
                     }
                 })
             }
@@ -431,12 +425,12 @@
                         $innerFunction._drawRectangleInTempCanvas($mouseTrack.startX + $tempScrollPaneAPI[viewNo].getContentPositionX(), $mouseTrack.startY + $tempScrollPaneAPI[viewNo].getContentPositionY(), e.offsetX-$mouseTrack.startX, e.offsetY-$mouseTrack.startY, true, false, viewNo);
                         break;
                     case MouseMode.Move :
-                        $viewers[viewNo]._newX = $annotationScrollPaneAPI[viewNo].getContentPositionX() - (e.offsetX - $mouseTrack.startX);
-                        $viewers[viewNo]._newY = $annotationScrollPaneAPI[viewNo].getContentPositionY() - (e.offsetY - $mouseTrack.startY);
+                        let X = $annotationScrollPaneAPI[viewNo].getContentPositionX() - (e.offsetX - $mouseTrack.startX);
+                        let Y = $annotationScrollPaneAPI[viewNo].getContentPositionY() - (e.offsetY - $mouseTrack.startY);
 
-                        $imageScrollPaneAPI[viewNo].scrollTo($viewers[viewNo]._newX,$viewers[viewNo]._newY);
-                        $tempScrollPaneAPI[viewNo].scrollTo($viewers[viewNo]._newX,$viewers[viewNo]._newY);
-                        $annotationScrollPaneAPI[viewNo].scrollTo($viewers[viewNo]._newX,$viewers[viewNo]._newY);
+                        $imageScrollPaneAPI[viewNo].scrollTo(X,Y);
+                        $tempScrollPaneAPI[viewNo].scrollTo(X,Y);
+                        $annotationScrollPaneAPI[viewNo].scrollTo(X,Y);
                         break;
                 }
             });
@@ -456,58 +450,14 @@
                             $innerFunction._zoomArea(x/$viewers[viewNo]._currentScale, y/$viewers[viewNo]._currentScale, Math.abs($mouseTrack.endX - $mouseTrack.startX)/$viewers[viewNo]._currentScale, Math.abs($mouseTrack.endY - $mouseTrack.startY)/$viewers[viewNo]._currentScale, viewNo);
                         }
                         break;
-                    case MouseMode.Move :
-                        $imageScrollPaneAPI[viewNo].scrollTo($viewers[viewNo]._newX,$variable._newY);
-                        $tempScrollPaneAPI[viewNo].scrollTo($viewers[viewNo]._newX,$variable._newY);
-                        $annotationScrollPaneAPI[viewNo].scrollTo($viewers[viewNo]._newX,$variable._newY);
-                        break;
                 }
                 $viewers[viewNo]._mouseMode = MouseMode.None;
             });
         },
 
-        loadImage: function(docObject, viewNo) {
+        loadImage: function(docObject, viewNo, fromMoveTo) {
             $viewers[viewNo]._rotate = 0;
             if (docObject.showAnnotationTool) { $innerFunction.loadAnnotation(); }
-
-            /*
-            for (let i=0;i<$importVariable.imageInfo[viewNo].totalPage; i++) {
-                let url = docObject.imageServerUrl+'?docId='+docObject.imageInfo[viewNo].docId+'&currentPage='+i+'&type=tiff';
-                $viewers[viewNo].docUrl[i] = url;
-                let xhr = new XMLHttpRequest();
-                xhr.open('GET', url);
-                xhr.responseType = 'arraybuffer';
-                xhr.onload = function () {
-                    let t0 = performance.now();
-                    $viewers[viewNo].tiff[i] = new Tiff({buffer: xhr.response});
-                    $viewers[viewNo]._oriImageWidth = $viewers[viewNo].tiff[i].width(); $viewers[viewNo]._oriImageHeight = $viewers[viewNo].tiff[i].height();
-                    $viewers[viewNo]._imageWidth = $viewers[viewNo]._oriImageWidth;   $viewers[viewNo]._imageHeight = $viewers[viewNo]._oriImageHeight;
-
-                    $imageCanvas[viewNo].width = $viewers[viewNo]._imageWidth ;       $imageCanvas[viewNo].height = $viewers[viewNo]._imageHeight;
-                    $tempCanvas[viewNo].width = $viewers[viewNo]._imageWidth;         $tempCanvas[viewNo].height = $viewers[viewNo]._imageHeight;
-                    $annotationCanvas[viewNo].width = $viewers[viewNo]._imageWidth ;  $annotationCanvas[viewNo].height = $viewers[viewNo]._imageHeight;
-                    $viewers[viewNo]._centerX = $viewers[viewNo]._imageWidth / 2;     $viewers[viewNo]._centerY = $viewers[viewNo]._imageHeight / 2;
-
-                    let scale_w = docObject.imageInfo[viewNo].viewerWidth / $viewers[viewNo]._imageWidth;
-                    let scale_h = docObject.imageInfo[viewNo].viewerHeight / $viewers[viewNo]._imageHeight;
-                    $viewers[viewNo]._minScale = scale_h < scale_w ? scale_h : scale_w;
-
-                    $image[viewNo] = new Image();
-                    $image[viewNo].src = $viewers[viewNo]._tiff.toDataURL();
-                    $image[viewNo].onload = function () {
-                        var t1 = performance.now();
-                        console.log('Load image decode tiff, took t1-t0 '+(t1 - t0)+' milliseconds.');
-                        var ctx = $imageCanvas[viewNo].getContext('2d');
-                        ctx.drawImage($image[viewNo], 0, 0);
-                        $innerFunction.scale(docObject.initDisplayMode, viewNo);
-                        var t2 = performance.now();
-                        console.log('Load image all done, took t2-t0 '+(t2 - t0)+' milliseconds.');
-                    };
-                };
-                xhr.send();
-            }
-             */
-
             let url = docObject.imageServerUrl+'?docId='+docObject.imageInfo[viewNo].docId+'&currentPage='+docObject.imageInfo[viewNo].currentPage+'&type=tiff';
             //let url = docObject.imageServerUrl;
 
@@ -542,6 +492,10 @@
                         $innerFunction.scale(docObject.initDisplayMode, viewNo);
                         let t2 = performance.now();
                         console.log('Load image all done, took t2-t0 '+(t2 - t0)+' milliseconds.');
+
+                        if (fromMoveTo) {
+                            $innerFunction.zoomArea($moveTo.x, $moveTo.y, $moveTo.width, $moveTo.height, viewNo);
+                        }
                     };
                 };
                 xhr.send();
@@ -554,6 +508,8 @@
                 ctx.drawImage($image[viewNo], 0, 0);
                 $innerFunction.scale(docObject.initDisplayMode, viewNo);
             }
+
+
 
             // 如果要顯示 annotation, 就把 annotation 畫出來
             if ($variable._showAnnotation) {
@@ -626,12 +582,11 @@
 
             $innerFunction._calcInScale(viewNo);
             $innerFunction._draw(viewNo);
-            console.log($viewers[viewNo]._rotate);
         },
 
-        changePage: function(currentPage, viewNo) {
+        changePage: function(currentPage, viewNo, fromMoveTo) {
             $importVariable.imageInfo[viewNo].currentPage = currentPage;
-            $innerFunction.loadImage($importVariable, viewNo);
+            $innerFunction.loadImage($importVariable, viewNo, fromMoveTo);
             $('#dummy-currentPage-'+viewNo).val(currentPage);
 
             $('#'+$variable._wapperId+'-btnPrev-'+viewNo).prop('disabled',false);
