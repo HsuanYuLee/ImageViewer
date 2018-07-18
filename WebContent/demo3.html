@@ -1,5 +1,5 @@
 
-<!--test multi Viewers-->
+<!---test different Tiff plugins-->
 
 <!doctype html>
 <html>
@@ -9,9 +9,10 @@
     <link rel="stylesheet" href="./imageviewer/font-awesome/css/font-awesome.min.css" />
     <link rel="stylesheet" href="./imageviewer/ezacquire.imageviewer.css" />
     <link rel="stylesheet" href="./imageviewer/tingle.css" />
-    <script src="./imageviewer/tiff.min.js"></script>
+    <!--<script src="./imageviewer/tiff.min.js"></script>-->
+    <script src="./imageviewer/UTIF.js"></script>
     <script src="imageviewer/jquery-1.12.3.js"></script>
-    <script src="./imageviewer/ezacquire.imageviewer.js"></script>
+    <script src="./imageviewer/ezacquire.imageviewer2.js"></script>
     <script src="./imageviewer/jquery.jscrollpane.min.js"></script>
     <script src="./imageviewer/tingle.min.js"></script>
     <script type="text/javascript">
@@ -29,33 +30,6 @@
                         },
                         success : function () {
                             myViewer = $('#myDiv').imageviewer({
-                                width: 1500,
-                                minWidth: 750,
-                                height: 600,
-                                closeMaxAndUnmax: false,
-                                initDisplayMode: 3,
-                                showWaterMark: true,
-                                showToolBar: true,
-                                showAnnotationTool: false,
-                            });
-
-                            myViewer.setWaterMark({
-                                Font: 'bold 60pt Calibri',
-                                FillColor: '#ff0000',
-                                FillAlpha: 0.4,
-                                RotateAngle: 45,
-                                Text: '中文 ImageViewer Demo',
-                            });
-
-                            myViewer.loadimage([
-                                { docId: '20262', formId: '', currentPage: '1', viewPage : '', totalPage: '4'},
-                                { docId: '27895', formId: '', currentPage: '1', viewPage : '', totalPage: '4'},
-                                { docId: '28115', formId: '', currentPage: '1', viewPage : '', totalPage: '2'},
-                            ])
-
-
-                            /*
-                            myViewer = $('#myDiv').imageviewer({
                                 width: 1500, height: 600,
                                 minWidth: 750,
                                 closeMaxAndUnmax: false,
@@ -69,7 +43,6 @@
                                 waterMarkText: '中文 ImageViewer Demo',
                                 showAnnotationTool: false
                             });
-                            */
                         }
                     });
                     log = true;
