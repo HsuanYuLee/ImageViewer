@@ -47,11 +47,19 @@
                                 Text: '中文 ImageViewer Demo',
                             });
 
-                            myViewer.loadimage([
-                                { docId: '20262', formId: '', currentPage: '1', viewPage : '', totalPage: '4'},
-                                { docId: '27895', formId: '', currentPage: '1', viewPage : '', totalPage: '4'},
-                                { docId: '28115', formId: '', currentPage: '1', viewPage : '', totalPage: '2'},
-                            ])
+                            /**/
+
+                            myViewer.loadImage({
+                                imageServerUrl: 'http://localhost:8083/ImageViewer/imageServlet',
+                                tiff: true,
+                                imageInfo: [
+                                    { docId: '20262', formId: '', currentPage: '1', viewPage : '', totalPage: '4'},
+                                    { docId: '27895', formId: '', currentPage: '1', viewPage : '', totalPage: '4'},
+                                    { docId: '28115', formId: '', currentPage: '1', viewPage : '', totalPage: '2'},
+                                ]
+                            });
+
+
 
 
                             /*

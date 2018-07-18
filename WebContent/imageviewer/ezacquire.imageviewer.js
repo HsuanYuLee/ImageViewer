@@ -9,7 +9,18 @@
         initDisplayMode: 3,
         showWaterMark: true,
         showAnnotationTool: false,
+
     };
+    let $imageData = [];
+    let $waterMark = {
+        Font: 'bold 60pt Calibri',
+        FillColor: '#ff0000',
+        FillAlpha: 0.4,
+        RotateAngle: 45,
+        Text: '中文 ImageViewer Demo',
+    };
+
+    let $watermarkCanvas = [];
 
     let $imageContain = [];
     let $imageCanvas = [];
@@ -18,8 +29,6 @@
     let $annotationContain = [];
     let $annotationCanvas = [];
     let $annotationScrollPaneAPI = [];
-
-    let $watermarkCanvas = [];
 
     let $tempContain = [];
     let $tempCanvas = [];
@@ -114,65 +123,84 @@
 //======================================================================================================================
 //imageviewer
     $.fn.imageviewer = function (options) {
-        this.init = function (options) {
-            $viewer = $.extend($viewer, options);
-            $variable._wapperId = $(this).attr("id");
-            $(this).css({'width' : $viewer.width});
-            $variable._showAnnotation = $viewer.showAnnotationTool;
-
-            $('#'+$variable._wapperId).append('<div id=View-'+0+'></div>');
-            $innerFunction.renderViewer(options);
-
-
-    };
-
-    $.fn.imageviewer = function (options) {
-        this.init = function (options) {
-            $importVariable = $.extend($importVariable, options);
-            $variable._wapperId = $(this).attr("id");
-            $(this).css({'width' : $importVariable.viewerWidth});
-            $variable._showAnnotation = $importVariable.showAnnotationTool;
-    //---------------------------------------------------------------------------------------------------------------------
-    //initialize viewersArray
-            for (let viewNo in $importVariable.imageInfo){
-                if ($viewers[viewNo] === undefined) {
-                    for (let i = 0; i < $importVariable.imageInfo.length; i++) {
-                        $viewers.push({
-                            _docUrl : null,
-                            _tiff : null,
-                            _minScale: null,
-                            _currentScale: null,
-                            _viewerWidth: null,        _viewerHeight: null,
-                            _oriImageWidth : null,     _oriImageHeight: null,
-                            _imageWidth: null,         _imageHeight: null,
-                            _centerX: null,            _centerY: null,
-                            _canvasDisplayWidth: null, _canvasDisplayHeight: null,
-                            _rotate: null,
-                            _displayMode: null,
-                            _mouseMode: null,
-                            _annoMode: null,
-                            _maxClicked: true,
-                        });
-                    }
-                }
-                $viewers[viewNo]._viewerWidth = $importVariable.width;
-                $viewers[viewNo]._viewerHeight = $importVariable.height;
-                $('#'+$variable._wapperId).append('<div id=View-'+viewNo+'></div>');
-                $innerFunction.renderAndComponentViewer(viewNo);
-
-                if ($importVariable.closeMaxAndUnmax) {
-                    $('#'+$variable._wapperId+'-btnUnMax-'+viewNo).hide();
-                    $('#'+$variable._wapperId+'-btnMax-'+viewNo).hide();
-                }
-            }
-        };
         $imageViewer = $.extend($imageViewer,$function);
+        this.init = function (options) {
+            $.extend($viewer, options);
+            $variable._wapperId = $(this).attr("id");
+            $(this).css({'width' : options.width});
+            $variable._showAnnotation = $viewer.showAnnotationTool;
+            $innerFunction.renderViewer(options, 0);
+    };
         this.init(options);
         return $imageViewer;
     };
 //----------------------------------------------------------------------------------------------------------------------
 //Functions
     let $function = {
+        setWaterMark: function(options) {
+            $.extend($waterMark, options);
+            if ($viewer.showWaterMark) {
+                for (let viewNo in $watermarkCanvas) {
+                    let context = $watermarkCanvas[viewNo].getContext('2d');
+                    context.save();
+                    context.translate($viewer.width / 2, $viewer.height / 2);
+                    context.rotate(Math.PI / 4);
+                    context.textAlign = 'center';
+                    context.font = options.Font;
+                    context.fillStyle = options.FillColor;
+                    context.globalAlpha = options.FillAlpha;
+                    context.fillText(options.Text, 0, 10);
+                    context.restore();
+                }
+            }
+        },
+        loadImage: function(options) {
+            $('#'+$variable._wapperId).empty();
+            for (let i=0; i<options.imageInfo.length; i++) {
+                $innerFunction.renderViewer($viewer, i);
+                $imageData[i] = options.imageInfo[i];
+
+                //$innerFunction.loadImage($imageData[i]);
+
+                let keys = Object.keys(options.imageInfo[i]);
+                let GETinfo = '';
+                for (let j = 0; j < keys.length; j++) {
+                    if (options.imageInfo[i][keys[j]] !== '') { GETinfo += keys[j]+'='+options.imageInfo[i][keys[j]]+'&'; }
+                }
+                if (options.tiff) {
+                    GETinfo += 'type=tiff';
+                    let url = options.imageServerUrl+'?'+GETinfo;
+                    let xhr = new XMLHttpRequest();
+                    xhr.open('GET', url);
+                    xhr.responseType = 'arraybuffer';
+                    xhr.onload = function () {
+                        let t0 = performance.now();
+                        $image[i] = new Image();
+                        $image[i].src = new Tiff({buffer: xhr.response}).toDataURL();
+                        $image[i].onload = function () {
+                            let t1 = performance.now();
+                            console.log('Load image decode tiff, took t1-t0 ' +(t1-t0)+ ' milliseconds.');
+                            $innerFunction.setImageInViewer($image[i], i);
+                        };
+                    };
+                    xhr.send();
+                    } else {
+                    GETinfo = GETinfo.substring(0,GETinfo.length-1);
+                    let url = options.imageServerUrl+'?'+GETinfo;
+                    let t0 = performance.now();
+                    $image[i] = new Image();
+                    $image[i].src = url;
+                    $image[i].onload = function () {
+                        let t1 = performance.now();
+                        console.log('Load image, took t1-t0 ' +(t1-t0)+ ' milliseconds.');
+                        $innerFunction.setImageInViewer($image[i], i);
+                    };
+                }
+                $('#dummy-currentPage-'+i).val(options.imageInfo[i].currentPage);
+                $('#dummy-totalPage-'+i).html(' /'+options.imageInfo[i].totalPage);
+                if ($('#dummy-currentPage-'+i).val() === '1') {$('#'+$variable._wapperId+'-btnPrev-'+i).prop('disabled',true);}
+            }
+        },
         moveTo: function(viewNo, docNo, page, x, y, width, height) {
 
             let fromMoveTo = true;
@@ -183,7 +211,7 @@
 
             if(page !== parseInt($('#dummy-currentPage-'+viewNo).val()))
             {
-                $importVariable.imageInfo[viewNo].currentPage = page;
+                $imageData[viewNo].currentPage = page;
                 $innerFunction.changePage(page, viewNo, fromMoveTo);
             } else {
                 $innerFunction.zoomArea(x, y, width, height, viewNo);
@@ -193,19 +221,18 @@
 //----------------------------------------------------------------------------------------------------------------------
 //Inner Functions
     let $innerFunction = {
-
-        renderViewer : function(option) {
-            if (option.showToolBar) {
-
-            }
-        },
-
-        renderAndComponentViewer: function(viewNo) {
-    //---------------------------------------------------------------------------------------------------------------------
-    //render toolBar
-            if ($variable.showToolBar) {
-                $('#View-'+viewNo).append('<div id=dummy-tool-btn-warp-'+viewNo+' style="background-color:darkgray; width:'+$viewers[viewNo]._viewerWidth+'px; z-index: 4"></div>');
-                if (!$importVariable.showAnnotationTool) {
+        renderViewer : function(options, viewNo) {
+            $('#'+$variable._wapperId).append('<div id=View-'+viewNo+'></div>');
+        //  render viewer
+        /*  myId - toolbar
+                 - viewerPanel - annotationContain - annotationCanvas (z-index: 4, 所有滑鼠在這一層 listener)
+                 - tempCanvas (z-index: 3)
+                 - watermarkCanvas (z-index: 2)
+                 - imageContain - imageCanvas (z-index: 1)
+        */
+            if (options.showToolBar) {
+                $('#View-'+viewNo).append('<div id=dummy-tool-btn-warp-'+viewNo+' style="background-color:darkgray; width:'+options.width+'px; z-index: 4"></div>');
+                if (!options.showAnnotationTool) {
                     $toolsBtn.ShowAnno.show = false;
                     $toolsBtn.HideAnno.show = false;
                     $toolsBtn.EditAnno.show = false;
@@ -213,52 +240,64 @@
                 }
                 for (let i in $toolsBtn) {
                     $('#dummy-tool-btn-warp-'+viewNo).append(
-                        '<button type="button" id="'+$variable._wapperId+'-'+$toolsBtn[i].id+'-'+viewNo+'" class="tbtn-btn-primary" title="'+$toolsBtn[i].title+'" style="width: 35px"><i class="fa '+$toolsBtn[i].css+' fa-1x"></i></button>');
+                    '<button type="button" id="'+$variable._wapperId+'-'+$toolsBtn[i].id+'-'+viewNo+'" class="tbtn-btn-primary" title="'+$toolsBtn[i].title+'" style="width: 35px"><i class="fa '+$toolsBtn[i].css+' fa-1x"></i></button>');
                     if (!$toolsBtn[i].show) {$('#'+$variable._wapperId+'-'+$toolsBtn[i].id+'-'+viewNo).css({display : 'none'});}
                 }
                 $('#'+$variable._wapperId+'-btnNext-'+viewNo).after('<span><input type="text" maxlength=3 style="width:24px;" id=dummy-currentPage-'+viewNo+'><span id=dummy-totalPage-'+viewNo+'>/</span></span>');
-                $('#'+$variable._wapperId+'-btnUnMax-'+viewNo).css({float : 'right'});
-                $('#'+$variable._wapperId+'-btnMax-'+viewNo).css({float : 'right'});
-                if ($viewers[viewNo]._maxClicked){
-                    $('#'+$variable._wapperId+'-btnUnMax-'+viewNo).show();
-                    $('#'+$variable._wapperId+'-btnMax-'+viewNo).hide();
 
-                } else {
-                    $('#'+$variable._wapperId+'-btnUnMax-'+viewNo).hide();
-                    $('#'+$variable._wapperId+'-btnMax-'+viewNo).show();
+                if (!options.closeMaxAndUnmax) {
+                    $('#'+$variable._wapperId+'-btnUnMax-'+viewNo).css({float : 'right'});
+                    $('#'+$variable._wapperId+'-btnMax-'+viewNo).css({float : 'right'});
+                    /*
+                    if ($viewers[viewNo]._maxClicked){
+                        $('#'+$variable._wapperId+'-btnUnMax-'+viewNo).show();
+                        $('#'+$variable._wapperId+'-btnMax-'+viewNo).hide();
+                    } else {
+                        $('#'+$variable._wapperId+'-btnUnMax-'+viewNo).hide();
+                        $('#'+$variable._wapperId+'-btnMax-'+viewNo).show();
+                    }
+                    */
                 }
             }
-    //render viewer
-            /*  myId - toolbar
-                - viewerPanel - annotationContain - annotationCanvas (z-index: 4, 所有滑鼠在這一層 listener)
-                    - tempCanvas (z-index: 3)
-                    - watermarkCanvas (z-index: 2)
-                    - imageContain - imageCanvas (z-index: 1)
-            */
             $('#View-'+viewNo).append(
-                '<div id="'+$variable._wapperId+'-PANEL-'+viewNo+'" style="width:'+viewNo+'px; height:'+$viewers[viewNo]._viewerHeight+'px;">' +
-                    '<canvas id="watermarkCanvas-'+viewNo+'" width="'+$viewers[viewNo]._viewerWidth+'" height="'+$viewers[viewNo]._viewerHeight+'" style="width:'+$viewers[viewNo]._viewerWidth+'px; height: '+$viewers[viewNo]._viewerHeight+'px; position: absolute; z-index: 2;"></canvas>' +
-                    '<div id="'+$variable._wapperId+'-IMAGEDIV-'+viewNo+'" style="width:'+$viewers[viewNo]._viewerWidth+'px; height: '+$viewers[viewNo]._viewerHeight+'px; padding: 0; text-align: center; position: absolute; z-index: 1;">' +
+                '<div id="'+$variable._wapperId+'-PANEL-'+viewNo+'" style="width:'+viewNo+'px; height:'+options.height+'px;">' +
+                    '<canvas id="watermarkCanvas-'+viewNo+'" width="'+options.width+'" height="'+options.height+'" style="width:'+options.width+'px; height: '+options.height+'px; position: absolute; z-index: 2;"></canvas>' +
+                    '<div id="'+$variable._wapperId+'-IMAGEDIV-'+viewNo+'" style="width:'+options.width+'px; height: '+options.height+'px; padding: 0; text-align: center; position: absolute; z-index: 1;">' +
                         '<canvas id="imageCanvas-'+viewNo+'"></canvas>' +
                     '</div>' +
-                    '<div id="'+$variable._wapperId+'-TEMPDIV-'+viewNo+'" style="width:'+$viewers[viewNo]._viewerWidth+'px; height: '+$viewers[viewNo]._viewerHeight+'px; padding: 0; text-align: center; position: absolute; z-index: 3">' +
+                    '<div id="'+$variable._wapperId+'-TEMPDIV-'+viewNo+'" style="width:'+options.width+'px; height: '+options.height+'px; padding: 0; text-align: center; position: absolute; z-index: 3">' +
                         '<canvas id="tempCanvas-'+viewNo+'"></canvas>' +
                     '</div>' +
-                    '<div id="'+$variable._wapperId+'-DRAWDIV-'+viewNo+'" style="width:'+$viewers[viewNo]._viewerWidth+'px; height: '+$viewers[viewNo]._viewerHeight+'px; padding: 0; text-align: center; position: absolute; z-index: 4">' +
+                    '<div id="'+$variable._wapperId+'-DRAWDIV-'+viewNo+'" style="width:'+options.width+'px; height: '+options.height+'px; padding: 0; text-align: center; position: absolute; z-index: 4">' +
                         '<canvas id="annotationCanvas-'+viewNo+'"></canvas>' +
                     '</div>' +
-                '</div>'
-            );
-    //----------------------------------------------------------------------------------------------------------------------
-    //set viewer component
-            $watermarkCanvas[viewNo] = document.getElementById('watermarkCanvas-'+viewNo);
-            if ($importVariable.waterMarkText !== '') { $innerFunction._drawWaterMark(viewNo);}
+                '</div>');
 
+        //set Components
+            $watermarkCanvas[viewNo] = document.getElementById('watermarkCanvas-'+viewNo);
             $imageCanvas[viewNo] = document.getElementById('imageCanvas-'+viewNo);
+            $tempCanvas[viewNo] = document.getElementById('tempCanvas-'+viewNo);
+            $annotationCanvas[viewNo] = document.getElementById('annotationCanvas-'+viewNo);
+            $viewers[viewNo] = {
+                _docUrl : null,
+                _tiff : null,
+                _minScale: null,
+                _currentScale: 1,
+                _viewerWidth: options.width, _viewerHeight: options.height,
+                _oriImageWidth : null,       _oriImageHeight: null,
+                _imageWidth: null,           _imageHeight: null,
+                _centerX: null,              _centerY: null,
+                _canvasDisplayWidth: null,   _canvasDisplayHeight: null,
+                _rotate: 0,
+                _displayMode: null,
+                _mouseMode: null,
+                _annoMode: null,
+                _maxClicked: true,
+            };
+
             $imageContain[viewNo] = $('#'+$variable._wapperId+'-IMAGEDIV-'+viewNo);
             $imageScrollPaneAPI[viewNo] = $imageContain[viewNo].jScrollPane({ showArrows: false }).data('jsp');
 
-            $tempCanvas[viewNo] = document.getElementById('tempCanvas-'+viewNo);
             $tempContain[viewNo] = $('#'+$variable._wapperId+'-TEMPDIV-'+viewNo);
             $tempScrollPaneAPI[viewNo] = $tempContain[viewNo]
                 .bind('jsp-scroll-x', function(event, scrollPositionX) {
@@ -270,7 +309,6 @@
                 .jScrollPane({ showArrows: false })
                 .data('jsp');
 
-            $annotationCanvas[viewNo] = document.getElementById('annotationCanvas-'+viewNo);
             $annotationContain[viewNo] = $('#'+$variable._wapperId+'-DRAWDIV-'+viewNo);
             $annotationScrollPaneAPI[viewNo] = $annotationContain[viewNo]
                 .bind('jsp-scroll-x', function(event, scrollPositionX) {
@@ -282,12 +320,6 @@
                 .jScrollPane({ showArrows: false })
                 .data('jsp');
 
-            $innerFunction.loadImage($importVariable, viewNo, false);
-
-            $('#dummy-currentPage-'+viewNo).val($importVariable.imageInfo[viewNo].currentPage);
-            $('#dummy-totalPage-'+viewNo).html(' /'+$importVariable.imageInfo[viewNo].totalPage);
-            if ($importVariable.imageInfo[viewNo].currentPage === '1') {$('#'+$variable._wapperId+'-btnPrev-'+viewNo).prop('disabled',true);}
-    //set toolbar component
             if ($variable.showToolBar) {
                 $('#'+$variable._wapperId+'-btnFitHeight-'+viewNo).click(function () {
                     $viewers[viewNo]._displayMode = DisplayMode.fitHeight;
@@ -314,6 +346,7 @@
                     $innerFunction.rotate(-90, viewNo);
                 });
 
+                /*
                 $('#'+$variable._wapperId+'-btnShowAnno-'+viewNo).click(function () {
                     $variable._showAnnotation = true;
                     $('#'+$variable._wapperId+'-btnShowAnno-'+viewNo).hide();
@@ -337,15 +370,16 @@
                         $('#'+$variable._wapperId+'-btnEditAnno-'+viewNo).addClass("btn-default").removeClass("btn-active");
                     }
                 });
+                */
 
                 $('#'+$variable._wapperId+'-btnPrev-'+viewNo).click(function () {
-                    $importVariable.imageInfo[viewNo].currentPage--;
-                    $innerFunction.changePage($importVariable.imageInfo[viewNo].currentPage, viewNo, false);
+                    $imageData[viewNo].currentPage--;
+                    $innerFunction.changePage($imageData[viewNo].currentPage, viewNo, false);
                 });
 
                 $('#'+$variable._wapperId+'-btnNext-'+viewNo).click(function () {
-                    $importVariable.imageInfo[viewNo].currentPage++;
-                    $innerFunction.changePage($importVariable.imageInfo[viewNo].currentPage, viewNo, false);
+                    $imageData[viewNo].currentPage++;
+                    $innerFunction.changePage($imageData[viewNo].currentPage, viewNo, false);
                 });
 
                 $('#'+$variable._wapperId+'-btnUnMax-'+viewNo).click(function () {
@@ -382,61 +416,10 @@
                     }
                 })
             }
-    //----------------------------------------------------------------------------------------------------------------------
-    //set annotation component
-            /*
-            // Annotation 編輯的對話框
-            if ($annoEditDialog[viewNo] === undefined) {
-                $annoEditDialog[viewNo] = new tingle.modal({
-                    footer: true,
-                    stickyFooter: false,
-                    closeMethods: [],
-                    //closeLabel: "Close",
-                    cssClass: ['custom-class-1', 'custom-class-2'],
-                    onOpen: function() {
-                        console.log('modal open');
-                    },
-                    onClose: function() {
-                        console.log('modal closed');
-                    },
-                    beforeClose: function() {
-                        // here's goes some logic
-                        // e.g. save content before closing the modal
-                        return true; // close the modal
-                        //return false; // nothing happens
-                    }
-                });
 
-                $annoEditDialog[viewNo].setContent(`
-                <div class='tab'>
-                  <button class='tablinks' id='tabText-${viewNo}'>Text</button>
-                  <button class='tablinks' id='tabColor-${viewNo}'>Color</button>
-                </div>
-                <div id='Text-${viewNo}' class='tabcontent'>
-                  <textarea rows='4' cols='70' style='border-radius: 4px;' id='${$variable._wapperId}_AnnoText-${viewNo}'></textarea>
-                </div>
-                <div id='Color-${viewNo}' class='tabcontent'>
-                  "Background color: <input name='bgColor' type='color' value='${$variable.annotationDefaultBGColor}'/><br/>
-                  "Text color: <input name='textColor' type='color' value='${$variable.annotationDefaultTextColor}'/><br/>
-                </div>`);
-                $(`#tabText-${viewNo}`).click(function (e) {
-                    $innerFunction._showTab(e, `Text-${viewNo}`);
-                });
-                $(`#tabColor-${viewNo}`).click(function (e) {
-                    $innerFunction._showTab(e, `Color-${viewNo}`);
-                });
-                document.getElementById(`tabText-${viewNo}`).click();
+            },
 
-                $annoEditDialog[viewNo].addFooterBtn('Cancel', 'tingle-btn tingle-btn--primary', function() {
-                    // here goes some logic
-                    $annoEditDialog[viewNo].close();
-                });
-                $annoEditDialog[viewNo].addFooterBtn('Save', 'tingle-btn tingle-btn--default', function() {
-                    // here goes some logic
-                    $annoEditDialog[viewNo].close();
-                });
-            }
-            */
+        renderAndComponentViewer: function(viewNo) {
     //----------------------------------------------------------------------------------------------------------------------
     //Mouse Event
             $annotationContain[viewNo].bind("contextmenu", function (e) { return false; });
@@ -485,73 +468,70 @@
             });
         },
 
-        loadImage: function(docObject, viewNo, fromMoveTo) {
-            $viewers[viewNo]._rotate = 0;
-            if (docObject.showAnnotationTool) { $innerFunction.loadAnnotation(); }
-            let keys = Object.keys(docObject.imageInfo[viewNo]);
-            let GET = '';
-            for (let i=0; i<keys.length; i++) {
-                if (docObject.imageInfo[viewNo][keys[i]] !== '') {
-                    GET += keys[i]+'='+docObject.imageInfo[viewNo][keys[i]]+'&';
+        setImageInViewer : function(image, viewNo) {
+            $viewers[viewNo]._oriImageWidth = image.width;           $viewers[viewNo]._oriImageHeight = image.height;
+            $viewers[viewNo]._imageWidth = $viewers[viewNo]._oriImageWidth;
+            $viewers[viewNo]._imageHeight = $viewers[viewNo]._oriImageHeight;
+            $viewers[viewNo]._canvasDisplayWidth = $viewers[viewNo]._oriImageWidth;
+            $viewers[viewNo]._canvasDisplayHeight = $viewers[viewNo]._oriImageHeight;
+
+            $imageCanvas[viewNo].width = $viewers[viewNo]._imageWidth ;
+            $imageCanvas[viewNo].height = $viewers[viewNo]._imageHeight;
+            $tempCanvas[viewNo].width = $viewers[viewNo]._imageWidth;
+            $tempCanvas[viewNo].height = $viewers[viewNo]._imageHeight;
+            $annotationCanvas[viewNo].width = $viewers[viewNo]._imageWidth ;
+            $annotationCanvas[viewNo].height = $viewers[viewNo]._imageHeight;
+            $viewers[viewNo]._centerX = $viewers[viewNo]._imageWidth / 2;
+            $viewers[viewNo]._centerY = $viewers[viewNo]._imageHeight / 2;
+
+            let ctx = $imageCanvas[viewNo].getContext('2d');
+            ctx.drawImage($image[viewNo], 0, 0);
+            $innerFunction.resetCanvas(viewNo);
+        },
+
+        resetCanvas : function(viewNo) {
+            if ($imageScrollPaneAPI[viewNo].getIsScrollableH()) {
+                $imageScrollPaneAPI[viewNo].scrollToX(0);
+                $tempScrollPaneAPI[viewNo].scrollToX(0);
+                $annotationScrollPaneAPI[viewNo].scrollToX(0);
+            }
+            if ($imageScrollPaneAPI[viewNo].getIsScrollableV()) {
+                $imageScrollPaneAPI[viewNo].scrollToY(0);
+                $tempScrollPaneAPI[viewNo].scrollToY(0);
+                $annotationScrollPaneAPI[viewNo].scrollToY(0);
+            }
+
+            $imageCanvas[viewNo].setAttribute('style','width:'+$viewers[viewNo]._canvasDisplayWidth+'px; height:'+$viewers[viewNo]._canvasDisplayHeight+'px; margin:0px; z-index: 1');
+            $imageScrollPaneAPI[viewNo].reinitialise();
+            $tempCanvas[viewNo].setAttribute('style','width:'+$viewers[viewNo]._canvasDisplayWidth+'px; height:'+$viewers[viewNo]._canvasDisplayHeight+'px; margin:0px; z-index: 3');
+            $tempScrollPaneAPI[viewNo].reinitialise();
+            $annotationCanvas[viewNo].setAttribute('style','width:'+$viewers[viewNo]._canvasDisplayWidth+'px; height:'+$viewers[viewNo]._canvasDisplayHeight+'px; margin:0px; z-index: 4');
+            $annotationScrollPaneAPI[viewNo].reinitialise();
+
+            // move scroll
+            if ($imageScrollPaneAPI[viewNo].getContentWidth() > $viewers[viewNo]._viewerWidth) {
+                if ($viewers[viewNo]._centerX * $viewers[viewNo]._currentScale > $viewers[viewNo]._viewerWidth / 2) {
+                    $imageScrollPaneAPI[viewNo].scrollToX($viewers[viewNo]._centerX * $viewers[viewNo]._currentScale - $viewers[viewNo]._viewerWidth / 2);
+                    $tempScrollPaneAPI[viewNo].scrollToX($viewers[viewNo]._centerX * $viewers[viewNo]._currentScale - $viewers[viewNo]._viewerWidth / 2);
+                    $annotationScrollPaneAPI[viewNo].scrollToX($viewers[viewNo]._centerX * $viewers[viewNo]._currentScale - $viewers[viewNo]._viewerWidth / 2);
                 }
             }
-            let url = docObject.imageServerUrl+'?'+GET+'type=tiff';
-            console.log(url);
-
-            if (url !== $viewers[viewNo]._docUrl) {
-
-                $viewers[viewNo]._docUrl = url;
-                let xhr = new XMLHttpRequest();
-                xhr.open('GET', url);
-                xhr.responseType = 'arraybuffer';
-                xhr.onload = function () {
-                    let t0 = performance.now();
-                    $viewers[viewNo]._tiff = new Tiff({buffer: xhr.response});
-                    $viewers[viewNo]._oriImageWidth = $viewers[viewNo]._tiff.width(); $viewers[viewNo]._oriImageHeight = $viewers[viewNo]._tiff.height();
-                    $viewers[viewNo]._imageWidth = $viewers[viewNo]._oriImageWidth;   $viewers[viewNo]._imageHeight = $viewers[viewNo]._oriImageHeight;
-
-                    $imageCanvas[viewNo].width = $viewers[viewNo]._imageWidth ;       $imageCanvas[viewNo].height = $viewers[viewNo]._imageHeight;
-                    $tempCanvas[viewNo].width = $viewers[viewNo]._imageWidth;         $tempCanvas[viewNo].height = $viewers[viewNo]._imageHeight;
-                    $annotationCanvas[viewNo].width = $viewers[viewNo]._imageWidth ;  $annotationCanvas[viewNo].height = $viewers[viewNo]._imageHeight;
-                    $viewers[viewNo]._centerX = $viewers[viewNo]._imageWidth / 2;     $viewers[viewNo]._centerY = $viewers[viewNo]._imageHeight / 2;
-
-                    let scale_w = $viewers[viewNo]._viewerWidth / $viewers[viewNo]._imageWidth;
-                    let scale_h = $viewers[viewNo]._viewerHeight / $viewers[viewNo]._imageHeight;
-                    $viewers[viewNo]._minScale = scale_h < scale_w ? scale_h : scale_w;
-
-                    $image[viewNo] = new Image();
-                    $image[viewNo].src = $viewers[viewNo]._tiff.toDataURL();
-                    $image[viewNo].onload = function () {
-                        let t1 = performance.now();
-                        console.log('Load image decode tiff, took t1-t0 '+(t1 - t0)+' milliseconds.');
-                        let ctx = $imageCanvas[viewNo].getContext('2d');
-                        ctx.drawImage($image[viewNo], 0, 0);
-                        $innerFunction.scale(docObject.initDisplayMode, viewNo);
-                        let t2 = performance.now();
-                        console.log('Load image all done, took t2-t0 '+(t2 - t0)+' milliseconds.');
-
-                        if (fromMoveTo) {
-                            $innerFunction.zoomArea($moveTo.x, $moveTo.y, $moveTo.width, $moveTo.height, viewNo);
-                        }
-                    };
-                };
-                xhr.send();
-            } else {
-                $imageCanvas[viewNo].width = $viewers[viewNo]._imageWidth ;       $imageCanvas[viewNo].height = $viewers[viewNo]._imageHeight;
-                $tempCanvas[viewNo].width = $viewers[viewNo]._imageWidth;         $tempCanvas[viewNo].height = $viewers[viewNo]._imageHeight;
-                $annotationCanvas[viewNo].width = $viewers[viewNo]._imageWidth ;  $annotationCanvas[viewNo].height = $viewers[viewNo]._imageHeight;
-
-                let ctx = $imageCanvas[viewNo].getContext('2d');
-                ctx.drawImage($image[viewNo], 0, 0);
-                $innerFunction.scale(docObject.initDisplayMode, viewNo);
+            if ($imageScrollPaneAPI[viewNo].getContentHeight() > $viewers[viewNo]._viewerHeight) {
+                if ($viewers[viewNo]._centerY * $viewers[viewNo]._currentScale > $viewers[viewNo]._viewerHeight / 2) {
+                    $imageScrollPaneAPI[viewNo].scrollToY($viewers[viewNo]._centerY * $viewers[viewNo]._currentScale - $viewers[viewNo]._viewerHeight / 2);
+                    $tempScrollPaneAPI[viewNo].scrollToY($viewers[viewNo]._centerY * $viewers[viewNo]._currentScale - $viewers[viewNo]._viewerHeight / 2);
+                    $annotationScrollPaneAPI[viewNo].scrollToY($viewers[viewNo]._centerY * $viewers[viewNo]._currentScale - $viewers[viewNo]._viewerHeight / 2);
+                }
             }
+        },
 
-
-
+        loadImage: function(imageInfo) {
+            /*
             // 如果要顯示 annotation, 就把 annotation 畫出來
             if ($variable._showAnnotation) {
                 $innerFunction._redrawAnnotationCanvas(viewNo);
             }
+            */
         },
 
         loadAnnotation: function() {
@@ -590,7 +570,7 @@
                     break;
             }
             $innerFunction._calcInScale(viewNo);
-            $innerFunction._draw(viewNo);
+            $innerFunction.resetCanvas(viewNo);
         },
 
         rotate: function(degree, viewNo) {
@@ -618,7 +598,7 @@
             ctx.translate(-$viewers[viewNo]._centerX, -$viewers[viewNo]._centerY);
 
             $innerFunction._calcInScale(viewNo);
-            $innerFunction._draw(viewNo);
+            $innerFunction.resetCanvas(viewNo);
         },
 
         changePage: function(currentPage, viewNo, fromMoveTo) {
@@ -661,7 +641,7 @@
             $viewers[viewNo]._currentScale = $viewers[viewNo]._currentScale > 1 ? 1 : $viewers[viewNo]._currentScale;
 
             $innerFunction._calcInScale(viewNo);
-            $innerFunction._draw(viewNo);
+            $innerFunction.resetCanvas(viewNo);
         },
 
         _calcInScale: function(viewNo) {
@@ -672,6 +652,7 @@
         _draw: function(viewNo) {
             // draw image
             console.log("-------------------------------------------");
+
             $imageCanvas[viewNo].setAttribute('style','width:'+$viewers[viewNo]._canvasDisplayWidth+'px; height:'+$viewers[viewNo]._canvasDisplayHeight+'px; margin:0px; z-index: 1');
             $imageScrollPaneAPI[viewNo].reinitialise();
             $tempCanvas[viewNo].setAttribute('style','width:'+$viewers[viewNo]._canvasDisplayWidth+'px; height:'+$viewers[viewNo]._canvasDisplayHeight+'px; margin:0px; z-index: 3');
@@ -694,9 +675,6 @@
                     $annotationScrollPaneAPI[viewNo].scrollToY($viewers[viewNo]._centerY * $viewers[viewNo]._currentScale - $viewers[viewNo]._viewerHeight / 2);
                 }
             }
-
-
-
         },
 
         _drawWaterMark: function(viewNo) {
