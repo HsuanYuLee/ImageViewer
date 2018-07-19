@@ -15,9 +15,9 @@
     <script src="./imageviewer/jquery.jscrollpane.min.js"></script>
     <script src="./imageviewer/tingle.min.js"></script>
     <script type="text/javascript">
-        var myViewer;
+        let myViewer;
         $(function() {
-            var log = false;
+            let log = false;
             $('#login').click(function() {
                 if (!log) {
                     $.ajax({
@@ -46,44 +46,45 @@
                                 RotateAngle: 45,
                                 Text: '中文 ImageViewer Demo',
                             });
-
-                            /**/
-
-                            myViewer.loadImage({
-                                imageServerUrl: 'http://localhost:8083/ImageViewer/imageServlet',
-                                tiff: true,
-                                imageInfo: [
-                                    { docId: '20262', formId: '', currentPage: '1', viewPage : '', totalPage: '4'},
-                                    { docId: '27895', formId: '', currentPage: '1', viewPage : '', totalPage: '4'},
-                                    { docId: '28115', formId: '', currentPage: '1', viewPage : '', totalPage: '2'},
-                                ]
-                            });
-
-
-
-
-                            /*
-                            myViewer = $('#myDiv').imageviewer({
-                                width: 1500, height: 600,
-                                minWidth: 750,
-                                closeMaxAndUnmax: false,
-                                imageServerUrl: 'http://localhost:8083/ImageViewer/imageServlet',
-                                imageInfo: [
-                                    { docId: '20262', formId: '', currentPage: '1', viewPage : '', totalPage: '4'},
-                                    { docId: '27895', formId: '', currentPage: '1', viewPage : '', totalPage: '4'},
-                                    { docId: '28115', formId: '', currentPage: '1', viewPage : '', totalPage: '2'},
-                                ],
-                                initDisplayMode : 3,
-                                waterMarkText: '中文 ImageViewer Demo',
-                                showAnnotationTool: false
-                            });
-                            */
                         }
                     });
                     log = true;
                 }
             });
-            $('#logout').click(function () {location.reload();})
+            $('#logout').click(function () { location.reload(); });
+            $('#loadImage').click(function () {
+                myViewer.loadImage({
+                    imageServerUrl: 'http://localhost:8083/ImageViewer/imageServlet',
+                    tiff: true,
+                    imageInfo: {
+                        defaultProperties : {
+                            currentPage: '1',
+                            totalPage: '4'
+                        },
+                        properties : {
+                            docId: '20262',
+                            formId: '',
+                            viewPage : '',
+                        }
+                    }
+                })
+            });
+            $('#resizeViewer').click(function () {
+                myViewer.resizeViewer({
+                    width: 1000,
+                    minWidth: 750,
+                    height: 600,
+                })
+            });
+            $('#resetWaterMark').click(function () {
+                myViewer.setWaterMark({
+                    Font: 'bold 60pt Calibri',
+                    FillColor: '#ff0000',
+                    FillAlpha: 0.4,
+                    RotateAngle: 45,
+                    Text: '中文 ImageViewer Demo',
+                });
+            });
         });
     </script>
 </head>
@@ -92,6 +93,9 @@
     Username : <input id="username" type="text"> Password : <input id="password" type="password">
     <button id="login">login</button>
     <button id="logout">logout</button>
+    <button id="loadImage">loadImage</button>
+    <button id="resizeViewer">resizeViewer</button>
+    <button id="resetWaterMark">resetWaterMark</button>
 </div>
 <div style="background-color:bisque;" id="myDiv"></div>
 </body>

@@ -11,6 +11,7 @@
         showAnnotationTool: false,
 
     };
+    let $viewerNumber = 0;
     let $imageData = [];
     let $waterMark = {
         Font: 'bold 60pt Calibri',
@@ -128,8 +129,9 @@
             $.extend($viewer, options);
             $variable._wapperId = $(this).attr("id");
             $(this).css({'width' : options.width});
+
             $variable._showAnnotation = $viewer.showAnnotationTool;
-            $innerFunction.renderViewer(options, 0);
+            $innerFunction.renderViewer(options, $viewerNumber);
     };
         this.init(options);
         return $imageViewer;
@@ -143,6 +145,7 @@
                 for (let viewNo in $watermarkCanvas) {
                     let context = $watermarkCanvas[viewNo].getContext('2d');
                     context.save();
+                    context.clearRect(0,0,$viewer.width,$viewer.height);
                     context.translate($viewer.width / 2, $viewer.height / 2);
                     context.rotate(Math.PI / 4);
                     context.textAlign = 'center';
@@ -155,52 +158,64 @@
             }
         },
         loadImage: function(options) {
-            $('#'+$variable._wapperId).empty();
-            for (let i=0; i<options.imageInfo.length; i++) {
-                $innerFunction.renderViewer($viewer, i);
-                $imageData[i] = options.imageInfo[i];
+                $imageData = options;
 
-                //$innerFunction.loadImage($imageData[i]);
-
-                let keys = Object.keys(options.imageInfo[i]);
+                let keys = Object.keys($imageData.imageInfo.properties);
                 let GETinfo = '';
-                for (let j = 0; j < keys.length; j++) {
-                    if (options.imageInfo[i][keys[j]] !== '') { GETinfo += keys[j]+'='+options.imageInfo[i][keys[j]]+'&'; }
+                for (let i = 0; i < keys.length; i++) {
+                    if ($imageData.imageInfo.properties[keys[i]] !== '') { GETinfo += keys[i]+'='+$imageData.imageInfo.properties[keys[i]]+'&'; }
                 }
-                if (options.tiff) {
-                    GETinfo += 'type=tiff';
-                    let url = options.imageServerUrl+'?'+GETinfo;
+                GETinfo += 'currentPage='+$imageData.imageInfo.defaultProperties.currentPage+'&totalPage='+$imageData.imageInfo.defaultProperties.totalPage;
+                console.log(GETinfo);
+
+                if ($imageData.tiff) {
+                    GETinfo += '&type=tiff';
+                    let url = $imageData.imageServerUrl+'?'+GETinfo;
                     let xhr = new XMLHttpRequest();
                     xhr.open('GET', url);
                     xhr.responseType = 'arraybuffer';
                     xhr.onload = function () {
                         let t0 = performance.now();
-                        $image[i] = new Image();
-                        $image[i].src = new Tiff({buffer: xhr.response}).toDataURL();
-                        $image[i].onload = function () {
+                        $image[$viewerNumber] = new Image();
+                        $image[$viewerNumber].src = new Tiff({buffer: xhr.response}).toDataURL();
+                        $image[$viewerNumber].onload = function () {
                             let t1 = performance.now();
                             console.log('Load image decode tiff, took t1-t0 ' +(t1-t0)+ ' milliseconds.');
-                            $innerFunction.setImageInViewer($image[i], i);
-                        };
+                            $innerFunction.setImageInViewer($image[$viewerNumber], $viewerNumber);};
                     };
                     xhr.send();
-                    } else {
+                } else {
                     GETinfo = GETinfo.substring(0,GETinfo.length-1);
-                    let url = options.imageServerUrl+'?'+GETinfo;
+                    let url = $imageData.imageServerUrl+'?'+GETinfo;
                     let t0 = performance.now();
-                    $image[i] = new Image();
-                    $image[i].src = url;
-                    $image[i].onload = function () {
+                    $image[$viewerNumber] = new Image();
+                    $image[$viewerNumber].src = url;
+                    $image[$viewerNumber].onload = function () {
                         let t1 = performance.now();
                         console.log('Load image, took t1-t0 ' +(t1-t0)+ ' milliseconds.');
-                        $innerFunction.setImageInViewer($image[i], i);
+                        $innerFunction.setImageInViewer($image[$viewerNumber], $viewerNumber);
                     };
                 }
-                $('#dummy-currentPage-'+i).val(options.imageInfo[i].currentPage);
-                $('#dummy-totalPage-'+i).html(' /'+options.imageInfo[i].totalPage);
-                if ($('#dummy-currentPage-'+i).val() === '1') {$('#'+$variable._wapperId+'-btnPrev-'+i).prop('disabled',true);}
-            }
+
+                $('#dummy-currentPage-'+0).val($imageData.imageInfo.defaultProperties.currentPage);
+                $('#dummy-totalPage-'+0).html(' /'+$imageData.imageInfo.defaultProperties.totalPage);
+                $('#'+$variable._wapperId+'-btnPrev-'+0).prop('disabled',false);
+                $('#'+$variable._wapperId+'-btnNext-'+0).prop('disabled',false);
+                if ($('#dummy-currentPage-'+0).val() === '1') { $('#'+$variable._wapperId+'-btnPrev-'+0).prop('disabled',true); }
+                if ($('#dummy-currentPage-'+0).val() === '4') { $('#'+$variable._wapperId+'-btnNext-'+0).prop('disabled',true); }
         },
+
+        /*
+        resizeViewer: function(options) {
+            $.extend($viewer, options);
+            $('#'+$variable._wapperId).empty();
+            $innerFunction.renderViewer($viewer, $viewerNumber);
+            $innerFunction.loadImage($imageData);
+        },
+        */
+
+
+
         moveTo: function(viewNo, docNo, page, x, y, width, height) {
 
             let fromMoveTo = true;
@@ -272,6 +287,8 @@
                         '<canvas id="annotationCanvas-'+viewNo+'"></canvas>' +
                     '</div>' +
                 '</div>');
+
+
 
         //set Components
             $watermarkCanvas[viewNo] = document.getElementById('watermarkCanvas-'+viewNo);
@@ -373,13 +390,13 @@
                 */
 
                 $('#'+$variable._wapperId+'-btnPrev-'+viewNo).click(function () {
-                    $imageData[viewNo].currentPage--;
-                    $innerFunction.changePage($imageData[viewNo].currentPage, viewNo, false);
+                    $imageData.imageInfo.defaultProperties.currentPage--;
+                    $function.loadImage($imageData);
                 });
 
                 $('#'+$variable._wapperId+'-btnNext-'+viewNo).click(function () {
-                    $imageData[viewNo].currentPage++;
-                    $innerFunction.changePage($imageData[viewNo].currentPage, viewNo, false);
+                    $imageData.imageInfo.defaultProperties.currentPage++;
+                    $function.loadImage($imageData);
                 });
 
                 $('#'+$variable._wapperId+'-btnUnMax-'+viewNo).click(function () {
@@ -405,23 +422,20 @@
                 $('#dummy-currentPage-'+viewNo).keypress(function (e) {
                     if(e.which === 13) {
                         let currentPage = $('#dummy-currentPage-'+viewNo).val();
-                        if (currentPage >= 1 && currentPage <= $importVariable.imageInfo[viewNo].totalPage) {
+                        if (currentPage >= 1 && currentPage <= $imageData.imageInfo.defaultProperties.totalPage) {
                         } else {
                             alert("error");
                             currentPage = 1;
                             $('#dummy-currentPage-'+viewNo).val(currentPage);
-                            $importVariable.imageInfo[viewNo].currentPage = currentPage;
                         }
-                        $innerFunction.changePage(currentPage, viewNo, false);
+                        $imageData.imageInfo.defaultProperties.currentPage = currentPage;
+                        $function.loadImage($imageData);
                     }
                 })
             }
 
-            },
-
-        renderAndComponentViewer: function(viewNo) {
-    //----------------------------------------------------------------------------------------------------------------------
-    //Mouse Event
+            //----------------------------------------------------------------------------------------------------------------------
+            //Mouse Event
             $annotationContain[viewNo].bind("contextmenu", function (e) { return false; });
             $annotationCanvas[viewNo].addEventListener('mousedown', function (e) {
 
@@ -466,6 +480,10 @@
                 }
                 $viewers[viewNo]._mouseMode = MouseMode.None;
             });
+            },
+
+        loadImage : function(imageData, inputImageData) {
+
         },
 
         setImageInViewer : function(image, viewNo) {
@@ -523,15 +541,6 @@
                     $annotationScrollPaneAPI[viewNo].scrollToY($viewers[viewNo]._centerY * $viewers[viewNo]._currentScale - $viewers[viewNo]._viewerHeight / 2);
                 }
             }
-        },
-
-        loadImage: function(imageInfo) {
-            /*
-            // 如果要顯示 annotation, 就把 annotation 畫出來
-            if ($variable._showAnnotation) {
-                $innerFunction._redrawAnnotationCanvas(viewNo);
-            }
-            */
         },
 
         loadAnnotation: function() {
