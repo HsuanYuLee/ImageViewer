@@ -11,7 +11,6 @@
         showAnnotationTool: false,
 
     };
-    let $viewerNumber = 0;
     let $imageData = [];
     let $waterMark = {
         Font: 'bold 60pt Calibri',
@@ -98,11 +97,6 @@
     };
 
     let $variable = {
-        waterMarkFont: 'bold 60pt Calibri',
-        waterMarkFillColor: '#ff0000',
-        waterMarkFillAlpha: 0.4,
-        waterMarkRotateAngle: 45,
-
         zoomRectFillStyle: 'rgba(255, 255, 125, 0.4)',
         zoomRectLineWidth: 2,
         zoomRectLineColor: '#ff0000',
@@ -125,13 +119,14 @@
 //imageviewer
     $.fn.imageviewer = function (options) {
         $imageViewer = $.extend($imageViewer,$function);
+
         this.init = function (options) {
-            $.extend($viewer, options);
+            $viewer = $.extend($viewer, options);
             $variable._wapperId = $(this).attr("id");
             $(this).css({'width' : options.width});
 
             $variable._showAnnotation = $viewer.showAnnotationTool;
-            $innerFunction.renderViewer(options, $viewerNumber);
+            $innerFunction.renderViewer(options, 0);
     };
         this.init(options);
         return $imageViewer;
@@ -143,17 +138,7 @@
             $.extend($waterMark, options);
             if ($viewer.showWaterMark) {
                 for (let viewNo in $watermarkCanvas) {
-                    let context = $watermarkCanvas[viewNo].getContext('2d');
-                    context.save();
-                    context.clearRect(0,0,$viewer.width,$viewer.height);
-                    context.translate($viewer.width / 2, $viewer.height / 2);
-                    context.rotate(Math.PI / 4);
-                    context.textAlign = 'center';
-                    context.font = options.Font;
-                    context.fillStyle = options.FillColor;
-                    context.globalAlpha = options.FillAlpha;
-                    context.fillText(options.Text, 0, 10);
-                    context.restore();
+                    $innerFunction.drawWaterMark(viewNo);
                 }
             }
         },
@@ -176,27 +161,26 @@
                     xhr.responseType = 'arraybuffer';
                     xhr.onload = function () {
                         let t0 = performance.now();
-                        $image[$viewerNumber] = new Image();
-                        $image[$viewerNumber].src = new Tiff({buffer: xhr.response}).toDataURL();
-                        $image[$viewerNumber].onload = function () {
+                        $image[0] = new Image();
+                        $image[0].src = new Tiff({buffer: xhr.response}).toDataURL();
+                        $image[0].onload = function () {
                             let t1 = performance.now();
                             console.log('Load image decode tiff, took t1-t0 ' +(t1-t0)+ ' milliseconds.');
-                            $innerFunction.setImageInViewer($image[$viewerNumber], $viewerNumber);};
+                            $innerFunction.setImageInViewer($image[0], 0);};
                     };
                     xhr.send();
                 } else {
                     GETinfo = GETinfo.substring(0,GETinfo.length-1);
                     let url = $imageData.imageServerUrl+'?'+GETinfo;
                     let t0 = performance.now();
-                    $image[$viewerNumber] = new Image();
-                    $image[$viewerNumber].src = url;
-                    $image[$viewerNumber].onload = function () {
+                    $image[0] = new Image();
+                    $image[0].src = url;
+                    $image[0].onload = function () {
                         let t1 = performance.now();
                         console.log('Load image, took t1-t0 ' +(t1-t0)+ ' milliseconds.');
-                        $innerFunction.setImageInViewer($image[$viewerNumber], $viewerNumber);
+                        $innerFunction.setImageInViewer($image[0], 0);
                     };
                 }
-
                 $('#dummy-currentPage-'+0).val($imageData.imageInfo.defaultProperties.currentPage);
                 $('#dummy-totalPage-'+0).html(' /'+$imageData.imageInfo.defaultProperties.totalPage);
                 $('#'+$variable._wapperId+'-btnPrev-'+0).prop('disabled',false);
@@ -213,13 +197,9 @@
             $innerFunction.loadImage($imageData);
         },
         */
-
-
-
         moveTo: function(viewNo, docNo, page, x, y, width, height) {
 
             let fromMoveTo = true;
-
             $moveTo.viewNo = viewNo;  $moveTo.docNo = docNo;  $moveTo.page = page;
             $moveTo.x = x;            $moveTo.y = y;
             $moveTo.width = width;    $moveTo.height = height;
@@ -292,6 +272,8 @@
 
         //set Components
             $watermarkCanvas[viewNo] = document.getElementById('watermarkCanvas-'+viewNo);
+
+            if ($viewer.showWaterMark) { $innerFunction.drawWaterMark(viewNo); }
             $imageCanvas[viewNo] = document.getElementById('imageCanvas-'+viewNo);
             $tempCanvas[viewNo] = document.getElementById('tempCanvas-'+viewNo);
             $annotationCanvas[viewNo] = document.getElementById('annotationCanvas-'+viewNo);
@@ -400,9 +382,22 @@
                 });
 
                 $('#'+$variable._wapperId+'-btnUnMax-'+viewNo).click(function () {
-                    $viewers[viewNo]._viewerWidth = $importVariable.minWidth;
+
+                    $viewer.width = [$viewer.width, $viewer.minWidth];
+                    $viewer.minWidth = $viewer.width[0];
+                    $viewer.width = $viewer.width[1];
                     $(this).parent().parent().empty();
-                    $innerFunction.renderAndComponentViewer(viewNo);
+
+                    $innerFunction.renderViewer($viewer, viewNo);
+                    if ($image[viewNo] !== undefined) {
+                        $('#dummy-currentPage-'+0).val($imageData.imageInfo.defaultProperties.currentPage);
+                        $('#dummy-totalPage-'+0).html(' /'+$imageData.imageInfo.defaultProperties.totalPage);
+                        $('#'+$variable._wapperId+'-btnPrev-'+0).prop('disabled',false);
+                        $('#'+$variable._wapperId+'-btnNext-'+0).prop('disabled',false);
+                        if ($('#dummy-currentPage-'+0).val() === '1') { $('#'+$variable._wapperId+'-btnPrev-'+0).prop('disabled',true); }
+                        if ($('#dummy-currentPage-'+0).val() === '4') { $('#'+$variable._wapperId+'-btnNext-'+0).prop('disabled',true); }
+                        $innerFunction.setImageInViewer($image[viewNo], viewNo);
+                    }
 
                     $('#'+$variable._wapperId+'-btnUnMax-'+viewNo).hide();
                     $('#'+$variable._wapperId+'-btnMax-'+viewNo).show();
@@ -410,9 +405,22 @@
                 });
 
                 $('#'+$variable._wapperId+'-btnMax-'+viewNo).click(function () {
-                    $viewers[viewNo]._viewerWidth = $importVariable.width;
+
+                    $viewer.width = [$viewer.width, $viewer.minWidth];
+                    $viewer.minWidth = $viewer.width[0];
+                    $viewer.width = $viewer.width[1];
                     $(this).parent().parent().empty();
-                    $innerFunction.renderAndComponentViewer(viewNo);
+
+                    $innerFunction.renderViewer($viewer, viewNo);
+                    if ($image[viewNo] !== undefined) {
+                        $('#dummy-currentPage-'+0).val($imageData.imageInfo.defaultProperties.currentPage);
+                        $('#dummy-totalPage-'+0).html(' /'+$imageData.imageInfo.defaultProperties.totalPage);
+                        $('#'+$variable._wapperId+'-btnPrev-'+0).prop('disabled',false);
+                        $('#'+$variable._wapperId+'-btnNext-'+0).prop('disabled',false);
+                        if ($('#dummy-currentPage-'+0).val() === '1') { $('#'+$variable._wapperId+'-btnPrev-'+0).prop('disabled',true); }
+                        if ($('#dummy-currentPage-'+0).val() === '4') { $('#'+$variable._wapperId+'-btnNext-'+0).prop('disabled',true); }
+                        $innerFunction.setImageInViewer($image[viewNo], viewNo);
+                    }
 
                     $('#'+$variable._wapperId+'-btnMax-'+viewNo).hide();
                     $('#'+$variable._wapperId+'-btnUnMax-'+viewNo).show();
@@ -686,16 +694,17 @@
             }
         },
 
-        _drawWaterMark: function(viewNo) {
+        drawWaterMark: function(viewNo) {
             let context = $watermarkCanvas[viewNo].getContext('2d');
             context.save();
-            context.translate($viewers[viewNo]._viewerWidth / 2, $viewers[viewNo]._viewerHeight / 2);
+            context.clearRect(0,0,$viewer.width,$viewer.height);
+            context.translate($viewer.width / 2, $viewer.height / 2);
             context.rotate(Math.PI / 4);
             context.textAlign = 'center';
-            context.font = $variable.waterMarkFont;
-            context.fillStyle = $variable.waterMarkFillColor;
-            context.globalAlpha = $variable.waterMarkFillAlpha;
-            context.fillText($importVariable.waterMarkText, 0, 10);
+            context.font = $waterMark.Font;
+            context.fillStyle = $waterMark.FillColor;
+            context.globalAlpha = $waterMark.FillAlpha;
+            context.fillText($waterMark.Text, 0, 10);
             context.restore();
         },
 
