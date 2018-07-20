@@ -189,14 +189,15 @@
                 if ($('#dummy-currentPage-'+0).val() === '4') { $('#'+$variable._wapperId+'-btnNext-'+0).prop('disabled',true); }
         },
 
-        /*
         resizeViewer: function(options) {
             $.extend($viewer, options);
             $('#'+$variable._wapperId).empty();
-            $innerFunction.renderViewer($viewer, $viewerNumber);
-            $innerFunction.loadImage($imageData);
+            $innerFunction.renderViewer($viewer, 0);
+            if ($image[0] !== undefined) {
+                $innerFunction.setImageInViewer($image[0], 0);
+            }
         },
-        */
+
         moveTo: function(viewNo, docNo, page, x, y, width, height) {
 
             let fromMoveTo = true;
@@ -267,8 +268,6 @@
                         '<canvas id="annotationCanvas-'+viewNo+'"></canvas>' +
                     '</div>' +
                 '</div>');
-
-
 
         //set Components
             $watermarkCanvas[viewNo] = document.getElementById('watermarkCanvas-'+viewNo);
@@ -490,10 +489,6 @@
             });
             },
 
-        loadImage : function(imageData, inputImageData) {
-
-        },
-
         setImageInViewer : function(image, viewNo) {
             $viewers[viewNo]._oriImageWidth = image.width;           $viewers[viewNo]._oriImageHeight = image.height;
             $viewers[viewNo]._imageWidth = $viewers[viewNo]._oriImageWidth;
@@ -512,6 +507,10 @@
 
             let ctx = $imageCanvas[viewNo].getContext('2d');
             ctx.drawImage($image[viewNo], 0, 0);
+
+            if ($viewer.initDisplayMode !== '') {
+                $innerFunction.scale($viewer.initDisplayMode, viewNo);
+            }
             $innerFunction.resetCanvas(viewNo);
         },
 
@@ -699,7 +698,7 @@
             context.save();
             context.clearRect(0,0,$viewer.width,$viewer.height);
             context.translate($viewer.width / 2, $viewer.height / 2);
-            context.rotate(Math.PI / 4);
+            context.rotate(Math.PI*$waterMark.RotateAngle / 180);
             context.textAlign = 'center';
             context.font = $waterMark.Font;
             context.fillStyle = $waterMark.FillColor;
