@@ -29,16 +29,14 @@
                         },
                         success : function () {
                             myViewer = $('#myDiv').imageviewer({
-                                width: 750, height: 600,
+                                width: 750,
                                 minWidth: 750,
+                                height: 600,
                                 closeMaxAndUnmax: true,
-                                imageServerUrl: 'http://localhost:8083/ImageViewer/imageServlet',
-                                imageInfo: [
-                                    { docId: '27895', formId: '', currentPage: '1', viewPage : '', totalPage: '4'},
-                                ],
-                                initDisplayMode : 3,
-                                waterMarkText: '中文 ImageViewer Demo',
-                                showAnnotationTool: false
+                                initDisplayMode: 'fullSize',
+                                showWaterMark: true,
+                                showToolBar: true,
+                                showAnnotationTool: false,
                             });
                             $('#moveTo').css('display','block');
                         }
@@ -46,16 +44,17 @@
                     log = true;
                 }
             });
-            $('#logout').click(function () {location.reload();});
+            $('#logout').click(function () { location.reload(); });
+            $('#loadImage').click(function () {
+                myViewer.loadImage
+                ('http://localhost:8083/ImageViewer/imageServlet', true, 1, 4, {docId: '20262', formId: '', viewPage : ''} )
 
-            $('#moveTo-1').click(function (){ moveTo(0, 27895, 1, 2715, 385, 255, 65) });
-            $('#moveTo-2').click(function (){ moveTo(0, 27895, 1, 2630, 310, 400, 70) });
-            $('#moveTo-3').click(function (){ moveTo(0, 27895, 3, 2715, 385, 255, 65) });
+            });
+
+            $('#moveTo-1').click(function (){ myViewer.moveTo(1, 290, 390, 485, 85) });
+            $('#moveTo-2').click(function (){ myViewer.moveTo(1, 1090, 200, 295, 75) });
+            $('#moveTo-3').click(function (){ myViewer.moveTo(3, 2715, 385, 255, 65) });
         });
-
-        function moveTo(viewNo, docNo, page, x, y, width, height) {
-            myViewer.moveTo(viewNo, docNo, page, x, y, width, height);
-        }
     </script>
 </head>
 
@@ -64,11 +63,12 @@
     Username : <input id="username" type="text"> Password : <input id="password" type="password">
     <button id="login">login</button>
     <button id="logout">logout</button>
+    <button id="loadImage">loadImage</button>
 </div>
 <div style="background-color:bisque; position: absolute" id="myDiv"></div>
 <div id="moveTo" style="width: 750px; height: 600px; position: absolute; left: 758px; margin: 20px 0 0 10px; z-index: 1; display: none">
-    <span>P1. 頁數 : <input id="moveTo-1" type="text"></span><p>
-    <span>P1. 列印人員 : <input id="moveTo-2" type="text"></span><p>
+    <span>P1. 保單號碼檢查號 : <input id="moveTo-1" type="text"></span><p>
+    <span>P1. 承保系統 : <input id="moveTo-2" type="text"></span><p>
     <span>P3. 頁數 : <input id="moveTo-3" type="text"></span><p>
 </div>
 </body>

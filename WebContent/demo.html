@@ -33,7 +33,7 @@
                                 minWidth: 750,
                                 height: 600,
                                 closeMaxAndUnmax: false,
-                                initDisplayMode: 0,
+                                initDisplayMode: 'fullSize',
                                 showWaterMark: true,
                                 showToolBar: true,
                                 showAnnotationTool: false,
@@ -46,35 +46,13 @@
 
             $('#logout').click(function () { location.reload(); });
             $('#loadImage').click(function () {
-
                 myViewer.loadImage
-                    ('http://localhost:8083/ImageViewer/imageServlet', true, 1, 4, {docId: '20262', formId: '', viewPage : '',} )
-                /*
-                myViewer.loadImage({
-                    imageServerUrl: 'http://localhost:8083/ImageViewer/imageServlet',
-                    tiff: true,
-                    imageInfo: {
-                        defaultProperties : {
-                            currentPage: '1',
-                            totalPage: '4'
-                        },
-                        properties : {
-                            docId: '20262',
-                            formId: '',
-                            viewPage : '',
-                        }
-                    }
-                })
-                */
+                    ('http://localhost:8083/ImageViewer/imageServlet', true, 1, 4, {docId: '20262', formId: '', viewPage : ''} )
 
             });
 
             $('#resizeViewer').click(function () {
-                myViewer.resizeViewer({
-                    width: 1000,
-                    minWidth: 750,
-                    height: 600,
-                })
+                myViewer.resizeViewer(1000, 600, 750);
             });
 
             $('#resetWaterMark').click(function () {

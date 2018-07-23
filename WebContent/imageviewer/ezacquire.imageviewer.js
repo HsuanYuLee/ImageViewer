@@ -1,15 +1,7 @@
 (function ($) {
     'use strict';
     let $imageViewer = null;
-    let $viewerData = {
-        width: 1500,
-        minWidth: 750,
-        height: 600,
-        closeMaxAndUnmax: false,
-        initDisplayMode: 3,
-        showWaterMark: true,
-        showAnnotationTool: false,
-    };
+    let $viewerData = [];
     let $imageData = [];
     let $image = [];
     let $waterMark = {
@@ -19,6 +11,7 @@
         RotateAngle: 45,
         Text: '中文 ImageViewer Demo',
     };
+    let loadFromMoveTo = false;
 
     let $watermarkCanvas = [];
 
@@ -62,7 +55,6 @@
         Max:       { id: "btnMax",       css: "fa-window-maximize", show: false,title: "最大化"    },
     };
 
-    let DisplayMode = { fitWidth: 0, fitHeight: 1, fitWindow: 2, fullSize: 3, zoomIn: 4, zoomOut: 5 };
     let MouseMode = {None: 0, Zoom: 1, Move: 2};
     let AnnoMode = {None: 0, Edit: 1, Del: 2};
 
@@ -86,7 +78,6 @@
 
     let $moveTo = {
         viewNo : null,
-        docNo : null,
         page : null,
         x : null,
         y : null,
@@ -119,11 +110,10 @@
         $imageViewer = $.extend($imageViewer,$function);
 
         this.init = function (options) {
-            $viewerData = $.extend($viewerData, options);
+            $viewerData[0] = $.extend($viewerData[0], options);
             $variable._wapperId = $(this).attr("id");
-            //$(this).css({'width' : options.width});
 
-            $variable._showAnnotation = $viewerData.showAnnotationTool;
+            $variable._showAnnotation = $viewerData[0].showAnnotationTool;
             $innerFunction.renderViewer(options, 0);
     };
         this.init(options);
@@ -134,7 +124,7 @@
     let $function = {
         setWaterMark: function(options) {
             $.extend($waterMark, options);
-            if ($viewerData.showWaterMark) {
+            if ($viewerData[0].showWaterMark) {
                 for (let viewNo in $watermarkCanvas) {
                     $innerFunction.drawWaterMark(viewNo);
                 }
@@ -187,83 +177,37 @@
             if ($('#dummy-currentPage-'+0).val() === '4') { $('#'+$variable._wapperId+'-btnNext-'+0).prop('disabled',true); }
 
         },
-        /*
-        loadImage: function(options) {
 
-            $imageData = options;
-
-            let keys = Object.keys($imageData.imageInfo.properties);
-            let GETinfo = '';
-            for (let i = 0; i < keys.length; i++) {
-                if ($imageData.imageInfo.properties[keys[i]] !== '') { GETinfo += keys[i]+'='+$imageData.imageInfo.properties[keys[i]]+'&'; }
-            }
-            GETinfo += 'currentPage='+$imageData.imageInfo.defaultProperties.currentPage+'&totalPage='+$imageData.imageInfo.defaultProperties.totalPage;
-
-            if ($imageData.tiff) {
-                GETinfo += '&type=tiff';
-                let url = $imageData.imageServerUrl+'?'+GETinfo;
-                let xhr = new XMLHttpRequest();
-                xhr.open('GET', url);
-                xhr.responseType = 'arraybuffer';
-                xhr.onload = function () {
-                    let t0 = performance.now();
-                    $image[0] = new Image();
-                    $image[0].src = new Tiff({buffer: xhr.response}).toDataURL();
-                    $image[0].onload = function () {
-                        let t1 = performance.now();
-                        console.log('Load image decode tiff, took t1-t0 ' +(t1-t0)+ ' milliseconds.');
-                        $innerFunction.setImageInViewer($image[0], 0);};
-                };
-                xhr.send();
-            } else {
-                GETinfo = GETinfo.substring(0,GETinfo.length-1);
-                let url = $imageData.imageServerUrl+'?'+GETinfo;
-                let t0 = performance.now();
-                $image[0] = new Image();
-                $image[0].src = url;
-                $image[0].onload = function () {
-                    let t1 = performance.now();
-                    console.log('Load image, took t1-t0 ' +(t1-t0)+ ' milliseconds.');
-                    $innerFunction.setImageInViewer($image[0], 0);
-                };
-            }
-            $('#dummy-currentPage-'+0).val($imageData.imageInfo.defaultProperties.currentPage);
-            $('#dummy-totalPage-'+0).html(' /'+$imageData.imageInfo.defaultProperties.totalPage);
-            $('#'+$variable._wapperId+'-btnPrev-'+0).prop('disabled',false);
-            $('#'+$variable._wapperId+'-btnNext-'+0).prop('disabled',false);
-            if ($('#dummy-currentPage-'+0).val() === '1') { $('#'+$variable._wapperId+'-btnPrev-'+0).prop('disabled',true); }
-            if ($('#dummy-currentPage-'+0).val() === '4') { $('#'+$variable._wapperId+'-btnNext-'+0).prop('disabled',true); }
-        },
-        */
-
-        resizeViewer: function(options) {
-            $.extend($viewerData, options);
+        resizeViewer: function(width, height, minWidth) {
+            $viewerData[0].width = width;
+            $viewerData[0].height = height;
+            $viewerData[0].minWidth = minWidth;
             $('#'+$variable._wapperId).empty();
-            $innerFunction.renderViewer($viewerData, 0);
+            $innerFunction.renderViewer($viewerData[0], 0);
             if ($image[0] !== undefined) {
-                $('#dummy-currentPage-'+0).val($imageData.imageInfo.defaultProperties.currentPage);
-                $('#dummy-totalPage-'+0).html(' /'+$imageData.imageInfo.defaultProperties.totalPage);
+                $('#dummy-currentPage-'+0).val($imageData[0].currentPage);
+                $('#dummy-totalPage-'+0).html(' /'+$imageData[0].totalPage);
                 $('#'+$variable._wapperId+'-btnPrev-'+0).prop('disabled',false);
                 $('#'+$variable._wapperId+'-btnNext-'+0).prop('disabled',false);
                 if ($('#dummy-currentPage-'+0).val() === '1') { $('#'+$variable._wapperId+'-btnPrev-'+0).prop('disabled',true); }
-                if ($('#dummy-currentPage-'+0).val() === '4') { $('#'+$variable._wapperId+'-btnNext-'+0).prop('disabled',true); }
+                if ($('#dummy-currentPage-'+0).val() === $imageData[0].totalPage) { $('#'+$variable._wapperId+'-btnNext-'+0).prop('disabled',true); }
                 $innerFunction.setImageInViewer($image[0], 0);
             }
         },
 
-        moveTo: function(viewNo, docNo, page, x, y, width, height) {
+        moveTo: function(page, x, y, width, height) {
 
-            let fromMoveTo = true;
-            $moveTo.viewNo = viewNo;  $moveTo.docNo = docNo;  $moveTo.page = page;
+            loadFromMoveTo = true;
+            $moveTo.viewNo = 0;       $moveTo.page = page;
             $moveTo.x = x;            $moveTo.y = y;
             $moveTo.width = width;    $moveTo.height = height;
 
-            if(page !== parseInt($('#dummy-currentPage-'+viewNo).val()))
+            if(page !== parseInt($('#dummy-currentPage-'+0).val()))
             {
-                $imageData[viewNo].currentPage = page;
-                $innerFunction.changePage(page, viewNo, fromMoveTo);
+                $imageData[0].currentPage = page;
+                $function.loadImage($imageData[0].imageServerUrl, $imageData[0].tiff, $imageData[0].currentPage, $imageData[0].totalPage, $imageData[0].properties);
             } else {
-                $innerFunction.zoomArea(x, y, width, height, viewNo);
+                $innerFunction.zoomArea(x, y, width, height, 0);
             }
         }
     };
@@ -287,26 +231,19 @@
                     $toolsBtn.EditAnno.show = false;
                     $toolsBtn.DelAnno.show = false;
                 }
+                if (options.closeMaxAndUnmax) {
+                    $toolsBtn.UnMax.show = false;
+                    $toolsBtn.Max.show = false;
+                }
                 for (let i in $toolsBtn) {
                     $('#dummy-tool-btn-warp-'+viewNo).append(
                     '<button type="button" id="'+$variable._wapperId+'-'+$toolsBtn[i].id+'-'+viewNo+'" class="tbtn-btn-primary" title="'+$toolsBtn[i].title+'" style="width: 35px"><i class="fa '+$toolsBtn[i].css+' fa-1x"></i></button>');
                     if (!$toolsBtn[i].show) {$('#'+$variable._wapperId+'-'+$toolsBtn[i].id+'-'+viewNo).css({display : 'none'});}
                 }
                 $('#'+$variable._wapperId+'-btnNext-'+viewNo).after('<span><input type="text" maxlength=3 style="width:24px;" id=dummy-currentPage-'+viewNo+'><span id=dummy-totalPage-'+viewNo+'>/</span></span>');
+                $('#'+$variable._wapperId+'-btnUnMax-'+viewNo).css({float : 'right'});
+                $('#'+$variable._wapperId+'-btnMax-'+viewNo).css({float : 'right'});
 
-                if (!options.closeMaxAndUnmax) {
-                    $('#'+$variable._wapperId+'-btnUnMax-'+viewNo).css({float : 'right'});
-                    $('#'+$variable._wapperId+'-btnMax-'+viewNo).css({float : 'right'});
-                    /*
-                    if ($viewers[viewNo]._maxClicked){
-                        $('#'+$variable._wapperId+'-btnUnMax-'+viewNo).show();
-                        $('#'+$variable._wapperId+'-btnMax-'+viewNo).hide();
-                    } else {
-                        $('#'+$variable._wapperId+'-btnUnMax-'+viewNo).hide();
-                        $('#'+$variable._wapperId+'-btnMax-'+viewNo).show();
-                    }
-                    */
-                }
             }
             $('#View-'+viewNo).append(
                 '<div id="'+$variable._wapperId+'-PANEL-'+viewNo+'" style="width:'+viewNo+'px; height:'+options.height+'px;">' +
@@ -325,7 +262,7 @@
         //set Components
             $watermarkCanvas[viewNo] = document.getElementById('watermarkCanvas-'+viewNo);
 
-            if ($viewerData.showWaterMark) { $innerFunction.drawWaterMark(viewNo); }
+            if ($viewerData[0].showWaterMark) { $innerFunction.drawWaterMark(viewNo); }
             $imageCanvas[viewNo] = document.getElementById('imageCanvas-'+viewNo);
             $tempCanvas[viewNo] = document.getElementById('tempCanvas-'+viewNo);
             $annotationCanvas[viewNo] = document.getElementById('annotationCanvas-'+viewNo);
@@ -371,22 +308,19 @@
 
             if ($variable.showToolBar) {
                 $('#'+$variable._wapperId+'-btnFitHeight-'+viewNo).click(function () {
-                    $viewers[viewNo]._displayMode = DisplayMode.fitHeight;
-                    $innerFunction.scale($viewers[viewNo]._displayMode, viewNo);
+                    $innerFunction.scale('fitHeight', viewNo);
                 });
                 $('#'+$variable._wapperId+'-btnFitWidth-'+viewNo).click(function () {
-                    $viewers[viewNo]._displayMode = DisplayMode.fitWidth;
-                    $innerFunction.scale($viewers[viewNo]._displayMode, viewNo);
+                    $innerFunction.scale('fitWidth', viewNo);
                 });
                 $('#'+$variable._wapperId+'-btnFullSize-'+viewNo).click(function () {
-                    $viewers[viewNo]._displayMode = DisplayMode.fullSize;
-                    $innerFunction.scale($viewers[viewNo]._displayMode, viewNo);
+                    $innerFunction.scale('fullSize', viewNo);
                 });
                 $('#'+$variable._wapperId+'-btnZoomIn-'+viewNo).click(function () {
-                    $innerFunction.scale(DisplayMode.zoomIn, viewNo);
+                    $innerFunction.scale('zoomIn', viewNo);
                 });
                 $('#'+$variable._wapperId+'-btnZoomOut-'+viewNo).click(function () {
-                    $innerFunction.scale(DisplayMode.zoomOut, viewNo);
+                    $innerFunction.scale('zoomOut', viewNo);
                 });
                 $('#'+$variable._wapperId+'-btnRotateCW-'+viewNo).click(function () {
                     $innerFunction.rotate(90, viewNo);
@@ -433,15 +367,15 @@
 
                 $('#'+$variable._wapperId+'-btnUnMax-'+viewNo).click(function () {
 
-                    $viewerData.width = [$viewerData.width, $viewerData.minWidth];
-                    $viewerData.minWidth = $viewerData.width[0];
-                    $viewerData.width = $viewerData.width[1];
+                    $viewerData[0].width = [$viewerData[0].width, $viewerData[0].minWidth];
+                    $viewerData[0].minWidth = $viewerData[0].width[0];
+                    $viewerData[0].width = $viewerData[0].width[1];
                     $(this).parent().parent().parent().empty();
 
-                    $innerFunction.renderViewer($viewerData, viewNo);
+                    $innerFunction.renderViewer($viewerData[0], viewNo);
                     if ($image[viewNo] !== undefined) {
-                        $('#dummy-currentPage-'+viewNo).val($imageData.imageInfo.defaultProperties.currentPage);
-                        $('#dummy-totalPage-'+viewNo).html(' /'+$imageData.imageInfo.defaultProperties.totalPage);
+                        $('#dummy-currentPage-'+viewNo).val($imageData[0].currentPage);
+                        $('#dummy-totalPage-'+viewNo).html(' /'+$imageData[0].totalPage);
                         $('#'+$variable._wapperId+'-btnPrev-'+viewNo).prop('disabled',false);
                         $('#'+$variable._wapperId+'-btnNext-'+viewNo).prop('disabled',false);
                         if ($('#dummy-currentPage-'+viewNo).val() === '1') { $('#'+$variable._wapperId+'-btnPrev-'+0).prop('disabled',true); }
@@ -451,43 +385,40 @@
 
                     $('#'+$variable._wapperId+'-btnUnMax-'+viewNo).hide();
                     $('#'+$variable._wapperId+'-btnMax-'+viewNo).show();
-                    $viewers[viewNo]._maxClicked = false;
                 });
 
                 $('#'+$variable._wapperId+'-btnMax-'+viewNo).click(function () {
 
-                    $viewerData.width = [$viewerData.width, $viewerData.minWidth];
-                    $viewerData.minWidth = $viewerData.width[0];
-                    $viewerData.width = $viewerData.width[1];
+                    $viewerData[0].width = [$viewerData[0].width, $viewerData[0].minWidth];
+                    $viewerData[0].minWidth = $viewerData[0].width[0];
+                    $viewerData[0].width = $viewerData[0].width[1];
                     $(this).parent().parent().parent().empty();
 
-                    $innerFunction.renderViewer($viewerData, viewNo);
+                    $innerFunction.renderViewer($viewerData[0], viewNo);
                     if ($image[viewNo] !== undefined) {
-                        $('#dummy-currentPage-'+viewNo).val($imageData.imageInfo.defaultProperties.currentPage);
-                        $('#dummy-totalPage-'+viewNo).html(' /'+$imageData.imageInfo.defaultProperties.totalPage);
+                        $('#dummy-currentPage-'+viewNo).val($imageData[0].currentPage);
+                        $('#dummy-totalPage-'+viewNo).html(' /'+$imageData[0].totalPage);
                         $('#'+$variable._wapperId+'-btnPrev-'+viewNo).prop('disabled',false);
                         $('#'+$variable._wapperId+'-btnNext-'+viewNo).prop('disabled',false);
                         if ($('#dummy-currentPage-'+viewNo).val() === '1') { $('#'+$variable._wapperId+'-btnPrev-'+0).prop('disabled',true); }
                         if ($('#dummy-currentPage-'+viewNo).val() === '4') { $('#'+$variable._wapperId+'-btnNext-'+0).prop('disabled',true); }
                         $innerFunction.setImageInViewer($image[viewNo], viewNo);
                     }
-
                     $('#'+$variable._wapperId+'-btnMax-'+viewNo).hide();
                     $('#'+$variable._wapperId+'-btnUnMax-'+viewNo).show();
-                    $viewers[viewNo]._maxClicked = true;
                 });
 
                 $('#dummy-currentPage-'+viewNo).keypress(function (e) {
                     if(e.which === 13) {
                         let currentPage = $('#dummy-currentPage-'+viewNo).val();
-                        if (currentPage >= 1 && currentPage <= $imageData.imageInfo.defaultProperties.totalPage) {
+                        if (currentPage >= 1 && currentPage <= $imageData[0].totalPage) {
                         } else {
                             alert("error");
                             currentPage = 1;
                             $('#dummy-currentPage-'+viewNo).val(currentPage);
                         }
-                        $imageData.imageInfo.defaultProperties.currentPage = currentPage;
-                        $function.loadImage($imageData);
+                        $imageData[0].currentPage = currentPage;
+                        $function.loadImage($imageData[0].imageServerUrl, $imageData[0].tiff, $imageData[0].currentPage, $imageData[0].totalPage, $imageData[0].properties);
                     }
                 })
             }
@@ -559,8 +490,13 @@
             let ctx = $imageCanvas[viewNo].getContext('2d');
             ctx.drawImage($image[viewNo], 0, 0);
 
-            if ($viewerData.initDisplayMode !== '') {
-                $innerFunction.scale($viewerData.initDisplayMode, viewNo);
+            if ($viewerData[0].initDisplayMode !== '') {
+                $innerFunction.scale($viewerData[0].initDisplayMode, viewNo);
+            }
+
+            if (loadFromMoveTo) {
+                $innerFunction.zoomArea($moveTo.x, $moveTo.y, $moveTo.width, $moveTo.height, 0);
+                loadFromMoveTo = false;
             }
             $innerFunction.resetCanvas(viewNo);
         },
@@ -612,26 +548,26 @@
 
         scale: function(displayMode, viewNo) {
             switch (displayMode) {
-                case DisplayMode.fitWidth:
+                case 'fitWidth':
                     $viewers[viewNo]._currentScale = $viewers[viewNo]._viewerWidth / $viewers[viewNo]._imageWidth;
                     break;
-                case DisplayMode.fitHeight:
+                case 'fitHeight':
                     $viewers[viewNo]._currentScale = $viewers[viewNo]._viewerHeight / $viewers[viewNo]._imageHeight;
                     break;
-                case DisplayMode.fitWindow:
+                case 'fitWindow':
                     let scale1, scale2;
                     scale1 = $viewers[viewNo]._viewerWidth / $viewers[viewNo]._imageWidth;
                     scale2 = $viewers[viewNo]._viewerHeight / $viewers[viewNo]._imageHeight;
                     $viewers[viewNo]._currentScale = scale1 < scale2 ? scale1 : scale2;
                     break;
-                case DisplayMode.fullSize:
+                case 'fullSize':
                     $viewers[viewNo]._currentScale = 1;
                     break;
-                case DisplayMode.zoomIn:
+                case 'zoomIn':
                     $viewers[viewNo]._currentScale += $variable._scaleDistance;
                     $viewers[viewNo]._currentScale = $viewers[viewNo]._currentScale > 1 ? 1 : $viewers[viewNo]._currentScale;
                     break;
-                case DisplayMode.zoomOut:
+                case 'zoomOut':
                     $viewers[viewNo]._currentScale -= $variable._scaleDistance;
                     $viewers[viewNo]._currentScale = $viewers[viewNo]._currentScale < $viewers[viewNo]._minScale ? $viewers[viewNo]._minScale : $viewers[viewNo]._currentScale;
                     break;
@@ -692,7 +628,6 @@
             }
         },
 
-
         //框選放大
         _zoomArea: function(x, y, width, height, viewNo) {
             x = parseInt(x);
@@ -719,8 +654,8 @@
         drawWaterMark: function(viewNo) {
             let context = $watermarkCanvas[viewNo].getContext('2d');
             context.save();
-            context.clearRect(0,0,$viewerData.width,$viewerData.height);
-            context.translate($viewerData.width / 2, $viewerData.height / 2);
+            context.clearRect(0,0,$viewerData[0].width,$viewerData[0].height);
+            context.translate($viewerData[0].width / 2, $viewerData[0].height / 2);
             context.rotate(Math.PI*$waterMark.RotateAngle / 180);
             context.textAlign = 'center';
             context.font = $waterMark.Font;
