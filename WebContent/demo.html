@@ -46,6 +46,10 @@
 
             $('#logout').click(function () { location.reload(); });
             $('#loadImage').click(function () {
+
+                myViewer.loadImage
+                    ('http://localhost:8083/ImageViewer/imageServlet', true, 1, 4, {docId: '20262', formId: '', viewPage : '',} )
+                /*
                 myViewer.loadImage({
                     imageServerUrl: 'http://localhost:8083/ImageViewer/imageServlet',
                     tiff: true,
@@ -61,8 +65,9 @@
                         }
                     }
                 })
-            });
+                */
 
+            });
 
             $('#resizeViewer').click(function () {
                 myViewer.resizeViewer({
