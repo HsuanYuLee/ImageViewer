@@ -174,7 +174,7 @@
             $('#'+$variable._wapperId+'-btnPrev-'+0).prop('disabled',false);
             $('#'+$variable._wapperId+'-btnNext-'+0).prop('disabled',false);
             if ($('#dummy-currentPage-'+0).val() === '1') { $('#'+$variable._wapperId+'-btnPrev-'+0).prop('disabled',true); }
-            if ($('#dummy-currentPage-'+0).val() === '4') { $('#'+$variable._wapperId+'-btnNext-'+0).prop('disabled',true); }
+            if ($('#dummy-currentPage-'+0).val() === $imageData[0].totalPage.toString()) { $('#'+$variable._wapperId+'-btnNext-'+0).prop('disabled',true); }
 
         },
 
@@ -190,14 +190,13 @@
                 $('#'+$variable._wapperId+'-btnPrev-'+0).prop('disabled',false);
                 $('#'+$variable._wapperId+'-btnNext-'+0).prop('disabled',false);
                 if ($('#dummy-currentPage-'+0).val() === '1') { $('#'+$variable._wapperId+'-btnPrev-'+0).prop('disabled',true); }
-                if ($('#dummy-currentPage-'+0).val() === $imageData[0].totalPage) { $('#'+$variable._wapperId+'-btnNext-'+0).prop('disabled',true); }
+                if ($('#dummy-currentPage-'+0).val() === $imageData[0].totalPage.toString()) { $('#'+$variable._wapperId+'-btnNext-'+0).prop('disabled',true); }
                 $innerFunction.setImageInViewer($image[0], 0);
             }
         },
 
         moveTo: function(page, x, y, width, height) {
 
-            loadFromMoveTo = true;
             $moveTo.viewNo = 0;       $moveTo.page = page;
             $moveTo.x = x;            $moveTo.y = y;
             $moveTo.width = width;    $moveTo.height = height;
@@ -205,6 +204,7 @@
             if(page !== parseInt($('#dummy-currentPage-'+0).val()))
             {
                 $imageData[0].currentPage = page;
+                loadFromMoveTo = true;
                 $function.loadImage($imageData[0].imageServerUrl, $imageData[0].tiff, $imageData[0].currentPage, $imageData[0].totalPage, $imageData[0].properties);
             } else {
                 $innerFunction.zoomArea(x, y, width, height, 0);
@@ -357,11 +357,13 @@
 
                 $('#'+$variable._wapperId+'-btnPrev-'+viewNo).click(function () {
                     $imageData[0].currentPage--;
+                    loadFromMoveTo = false;
                     $function.loadImage($imageData[0].imageServerUrl, $imageData[0].tiff, $imageData[0].currentPage, $imageData[0].totalPage, $imageData[0].properties);
                 });
 
                 $('#'+$variable._wapperId+'-btnNext-'+viewNo).click(function () {
                     $imageData[0].currentPage++;
+                    loadFromMoveTo = false;
                     $function.loadImage($imageData[0].imageServerUrl, $imageData[0].tiff, $imageData[0].currentPage, $imageData[0].totalPage, $imageData[0].properties);
                 });
 
@@ -379,7 +381,7 @@
                         $('#'+$variable._wapperId+'-btnPrev-'+viewNo).prop('disabled',false);
                         $('#'+$variable._wapperId+'-btnNext-'+viewNo).prop('disabled',false);
                         if ($('#dummy-currentPage-'+viewNo).val() === '1') { $('#'+$variable._wapperId+'-btnPrev-'+0).prop('disabled',true); }
-                        if ($('#dummy-currentPage-'+viewNo).val() === '4') { $('#'+$variable._wapperId+'-btnNext-'+0).prop('disabled',true); }
+                        if ($('#dummy-currentPage-'+viewNo).val() === $imageData[0].totalPage.toString()) { $('#'+$variable._wapperId+'-btnNext-'+0).prop('disabled',true); }
                         $innerFunction.setImageInViewer($image[viewNo], viewNo);
                     }
 
@@ -401,7 +403,7 @@
                         $('#'+$variable._wapperId+'-btnPrev-'+viewNo).prop('disabled',false);
                         $('#'+$variable._wapperId+'-btnNext-'+viewNo).prop('disabled',false);
                         if ($('#dummy-currentPage-'+viewNo).val() === '1') { $('#'+$variable._wapperId+'-btnPrev-'+0).prop('disabled',true); }
-                        if ($('#dummy-currentPage-'+viewNo).val() === '4') { $('#'+$variable._wapperId+'-btnNext-'+0).prop('disabled',true); }
+                        if ($('#dummy-currentPage-'+viewNo).val() === $imageData[0].totalPage.toString()) { $('#'+$variable._wapperId+'-btnNext-'+0).prop('disabled',true); }
                         $innerFunction.setImageInViewer($image[viewNo], viewNo);
                     }
                     $('#'+$variable._wapperId+'-btnMax-'+viewNo).hide();
@@ -418,6 +420,7 @@
                             $('#dummy-currentPage-'+viewNo).val(currentPage);
                         }
                         $imageData[0].currentPage = currentPage;
+                        loadFromMoveTo = false;
                         $function.loadImage($imageData[0].imageServerUrl, $imageData[0].tiff, $imageData[0].currentPage, $imageData[0].totalPage, $imageData[0].properties);
                     }
                 })
@@ -477,6 +480,11 @@
             $viewers[viewNo]._imageHeight = $viewers[viewNo]._oriImageHeight;
             $viewers[viewNo]._canvasDisplayWidth = $viewers[viewNo]._oriImageWidth;
             $viewers[viewNo]._canvasDisplayHeight = $viewers[viewNo]._oriImageHeight;
+
+            let scale1 = $viewers[viewNo]._viewerWidth / $viewers[viewNo]._imageWidth;
+            let scale2 = $viewers[viewNo]._viewerHeight / $viewers[viewNo]._imageHeight;
+            $viewers[viewNo]._minScale = scale1 < scale2 ? scale1 : scale2;
+
 
             $imageCanvas[viewNo].width = $viewers[viewNo]._imageWidth ;
             $imageCanvas[viewNo].height = $viewers[viewNo]._imageHeight;
@@ -602,22 +610,6 @@
 
             $innerFunction._calcInScale(viewNo);
             $innerFunction.resetCanvas(viewNo);
-        },
-
-        changePage: function(currentPage, viewNo, fromMoveTo) {
-            $importVariable.imageInfo[viewNo].currentPage = currentPage;
-            $innerFunction.loadImage($importVariable, viewNo, fromMoveTo);
-            $('#dummy-currentPage-'+viewNo).val(currentPage);
-
-            $('#'+$variable._wapperId+'-btnPrev-'+viewNo).prop('disabled',false);
-            $('#'+$variable._wapperId+'-btnNext-'+viewNo).prop('disabled',false);
-
-            if (parseInt($importVariable.imageInfo[viewNo].currentPage) === 1) {
-                $('#'+$variable._wapperId+'-btnPrev-'+viewNo).prop('disabled',true);
-            }
-            if (parseInt($importVariable.imageInfo[viewNo].currentPage) === parseInt($importVariable.imageInfo[viewNo].totalPage)) {
-                $('#'+$variable._wapperId+'-btnNext-'+viewNo).prop('disabled',true);
-            }
         },
 
         zoomArea: function(x, y, width, height, viewNo) {
