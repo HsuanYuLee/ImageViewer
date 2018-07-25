@@ -13,7 +13,7 @@
     <script src="./imageviewer/jquery.jscrollpane.min.js"></script>
     <script src="./imageviewer/tingle.min.js"></script>
     <script type="text/javascript">
-        let myViewer;
+        let myViewer, myViewer2;
         $(function() {
             let log = false;
             $('#login').click(function() {
@@ -36,6 +36,18 @@
                                 showToolBar: true,
                                 showAnnotationTool: false,
                             });
+
+                            myViewer2 = $('#myDiv2').imageviewer({
+                                width: 1000,
+                                minWidth: 750,
+                                height: 600,
+                                closeMaxAndUnmax: false,
+                                initDisplayMode: 'fitWidth',
+                                showWaterMark: true,
+                                showToolBar: true,
+                                showAnnotationTool: false,
+                            });
+
                         }
                     });
                     log = true;
@@ -45,7 +57,9 @@
             $('#logout').click(function () { location.reload(); });
             $('#loadImage').click(function () {
                 myViewer.loadImage
-                ('http://localhost:8083/ImageViewer/imageServlet', true, 1, 4, {docId: '20262', formId: '', viewPage : ''} )
+                ('http://localhost:8083/ImageViewer/imageServlet', false, 1, 4, {docId: '20262', formId: '', viewPage : ''} )
+                myViewer2.loadImage
+                ('http://localhost:8083/ImageViewer/imageServlet', true, 3, 4, {docId: '20262', formId: '', viewPage : ''} )
 
             });
 
@@ -58,7 +72,7 @@
                     Font: 'bold 60pt Calibri',
                     FillColor: '#ff0000',
                     FillAlpha: 0.4,
-                    RotateAngle: 45,
+                    RotateAngle: 60,
                     Text: '中文 ImageViewer Demo',
                 });
             });
@@ -75,6 +89,6 @@
     <button id="resetWaterMark">resetWaterMark</button>
 </div>
 <div style="background-color:bisque;" id="myDiv"></div>
-<img id="test">
+<div style="background-color:bisque;" id="myDiv2"></div>
 </body>
 </html>
