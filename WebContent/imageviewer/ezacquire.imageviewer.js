@@ -243,23 +243,15 @@
 
             $tempContain[viewNo] = $('#'+options.wapperId+'-TEMPDIV-'+viewNo);
             $tempScrollPaneAPI[viewNo] = $tempContain[viewNo]
-                .bind('jsp-scroll-x', function(event, scrollPositionX) {
-                    $imageScrollPaneAPI[viewNo].scrollToX(scrollPositionX);
-                })
-                .bind('jsp-scroll-y', function(event, scrollPositionY) {
-                    $imageScrollPaneAPI[viewNo].scrollToY(scrollPositionY);
-                })
+                .bind('jsp-scroll-x', function(event, scrollPositionX) { $imageScrollPaneAPI[viewNo].scrollToX(scrollPositionX); })
+                .bind('jsp-scroll-y', function(event, scrollPositionY) { $imageScrollPaneAPI[viewNo].scrollToY(scrollPositionY); })
                 .jScrollPane({ showArrows: false })
                 .data('jsp');
 
             $annotationContain[viewNo] = $('#'+options.wapperId+'-DRAWDIV-'+viewNo);
             $annotationScrollPaneAPI[viewNo] = $annotationContain[viewNo]
-                .bind('jsp-scroll-x', function(event, scrollPositionX) {
-                    $tempScrollPaneAPI[viewNo].scrollToX(scrollPositionX);
-                })
-                .bind('jsp-scroll-y', function(event, scrollPositionY) {
-                    $tempScrollPaneAPI[viewNo].scrollToY(scrollPositionY);
-                })
+                .bind('jsp-scroll-x', function(event, scrollPositionX) { $tempScrollPaneAPI[viewNo].scrollToX(scrollPositionX); })
+                .bind('jsp-scroll-y', function(event, scrollPositionY) { $tempScrollPaneAPI[viewNo].scrollToY(scrollPositionY); })
                 .jScrollPane({ showArrows: false })
                 .data('jsp');
 
@@ -314,16 +306,21 @@
 
                 $('#'+options.wapperId+'-btnPrev-'+viewNo).click(function () {
                     $imageData[viewNo].currentPage--;
+                    if ($imageData[viewNo].currentPage <= 1) {
+                        $imageData[viewNo].currentPage = 1;
+                    }
                     loadFromMoveTo = false;
                     $innerFunction.loadImage($imageData[viewNo].imageServerUrl, $imageData[viewNo].tiff, $imageData[viewNo].currentPage, $imageData[viewNo].totalPage, $imageData[viewNo].properties, viewNo);
-                    $viewers[viewNo]._rotate = 0;
                 });
 
                 $('#'+options.wapperId+'-btnNext-'+viewNo).click(function () {
+
                     $imageData[viewNo].currentPage++;
+                    if ($imageData[viewNo].currentPage >= $imageData[viewNo].totalPage) {
+                        $imageData[viewNo].currentPage = $imageData[viewNo].totalPage;
+                    }
                     loadFromMoveTo = false;
                     $innerFunction.loadImage($imageData[viewNo].imageServerUrl, $imageData[viewNo].tiff, $imageData[viewNo].currentPage, $imageData[viewNo].totalPage, $imageData[viewNo].properties, viewNo);
-                    $viewers[viewNo]._rotate = 0;
                 });
 
                 $('#'+options.wapperId+'-btnUnMax-'+viewNo).click(function () {
@@ -371,7 +368,10 @@
                 })
             }
 
+            //----------------------------------------------------------------------------------------------------------
+            //Mouse Event
             $innerFunction.mouseEvent(viewNo);
+            //----------------------------------------------------------------------------------------------------------
             },
 
         loadImage : function(imageServerUrl, tiff, currentPage, totalPage, properties, viewNo) {
@@ -428,8 +428,6 @@
         },
 
         mouseEvent : function(viewNo) {
-            //----------------------------------------------------------------------------------------------------------------------
-            //Mouse Event
             $annotationContain[viewNo].bind("contextmenu", function (e) { return false; });
             $annotationCanvas[viewNo].addEventListener('mousedown', function (e) {
 
@@ -474,7 +472,6 @@
                 }
                 $viewers[viewNo]._mouseMode = MouseMode.None;
             });
-
         },
 
         setPage : function(currentPage, totalPage, wapperId, viewNo) {
@@ -504,6 +501,8 @@
             $annotationCanvas[viewNo].height = $viewers[viewNo].imageHeight;
             $viewers[viewNo]._centerX = $viewers[viewNo].imageWidth / 2;
             $viewers[viewNo]._centerY = $viewers[viewNo].imageHeight / 2;
+
+            $viewers[viewNo]._rotate = 0;
 
             $innerFunction.resetCanvas(viewNo);
             $innerFunction.scale($imageViewer[viewNo].initDisplayMode, viewNo);
