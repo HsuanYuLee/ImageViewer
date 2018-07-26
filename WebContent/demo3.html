@@ -6,7 +6,6 @@
     <link rel="stylesheet" href="./imageviewer/font-awesome/css/font-awesome.min.css" />
     <link rel="stylesheet" href="./imageviewer/ezacquire.imageviewer.css" />
     <link rel="stylesheet" href="./imageviewer/tingle.css" />
-    <!--<script src="./imageviewer/tiff.min.js"></script>-->
     <script src="./imageviewer/UTIF.js"></script>
     <script src="imageviewer/jquery-1.12.3.js"></script>
     <script src="./imageviewer/ezacquire.imageviewer2.js"></script>
@@ -47,7 +46,6 @@
                                 showToolBar: true,
                                 showAnnotationTool: false,
                             });
-
                         }
                     });
                     log = true;
@@ -57,10 +55,11 @@
             $('#logout').click(function () { location.reload(); });
             $('#loadImage').click(function () {
                 myViewer.loadImage
-                ('http://localhost:8083/ImageViewer/imageServlet', false, 1, 4, {docId: '20262', formId: '', viewPage : ''} )
+                ('http://localhost:8083/ImageViewer/imageServlet', true, 1, 4, {docId: '20262', formId: '', viewPage : ''} );
+            });
+            $('#loadImage2').click(function () {
                 myViewer2.loadImage
-                ('http://localhost:8083/ImageViewer/imageServlet', true, 3, 4, {docId: '20262', formId: '', viewPage : ''} )
-
+                ('http://localhost:8083/ImageViewer/imageServlet', false, 3, 4, {docId: '20262', formId: '', viewPage : ''} );
             });
 
             $('#resizeViewer').click(function () {
@@ -85,6 +84,7 @@
     <button id="login">login</button>
     <button id="logout">logout</button>
     <button id="loadImage">loadImage</button>
+    <button id="loadImage2">loadImage2</button>
     <button id="resizeViewer">resizeViewer</button>
     <button id="resetWaterMark">resetWaterMark</button>
 </div>

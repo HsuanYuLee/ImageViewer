@@ -6,15 +6,13 @@
     <link rel="stylesheet" href="./imageviewer/font-awesome/css/font-awesome.min.css" />
     <link rel="stylesheet" href="./imageviewer/ezacquire.imageviewer.css" />
     <link rel="stylesheet" href="./imageviewer/tingle.css" />
-    <!--<script src="./imageviewer/tiff.min.js"></script>-->
-    <script src="./imageviewer/UTIF.js"></script>
+    <script src="./imageviewer/tiff.min.js"></script>
     <script src="imageviewer/jquery-1.12.3.js"></script>
-    <!--<script src="./imageviewer/ezacquire.imageviewer.js"></script>-->
-    <script src="./imageviewer/ezacquire.imageviewer2.js"></script>
+    <script src="./imageviewer/ezacquire.imageviewer.js"></script>
     <script src="./imageviewer/jquery.jscrollpane.min.js"></script>
     <script src="./imageviewer/tingle.min.js"></script>
     <script type="text/javascript">
-        let myViewer;
+        let myViewer, myViewer2;
         $(function() {
             let log = false;
             $('#login').click(function() {
@@ -32,7 +30,18 @@
                                 minWidth: 750,
                                 height: 600,
                                 closeMaxAndUnmax: false,
-                                initDisplayMode: 'fullSize',
+                                initDisplayMode: 'fitWidth',
+                                showWaterMark: true,
+                                showToolBar: true,
+                                showAnnotationTool: false,
+                            });
+
+                            myViewer2 = $('#myDiv2').imageviewer({
+                                width: 1000,
+                                minWidth: 750,
+                                height: 600,
+                                closeMaxAndUnmax: false,
+                                initDisplayMode: 'fitWidth',
                                 showWaterMark: true,
                                 showToolBar: true,
                                 showAnnotationTool: false,
@@ -46,8 +55,11 @@
             $('#logout').click(function () { location.reload(); });
             $('#loadImage').click(function () {
                 myViewer.loadImage
-                    ('http://localhost:8083/ImageViewer/imageServlet', true, 1, 4, {docId: '20262', formId: '', viewPage : ''} )
-
+                ('http://localhost:8083/ImageViewer/imageServlet', true, 1, 4, {docId: '20262', formId: '', viewPage : ''} );
+            });
+            $('#loadImage2').click(function () {
+                myViewer2.loadImage
+                ('http://localhost:8083/ImageViewer/imageServlet', false, 3, 4, {docId: '20262', formId: '', viewPage : ''} );
             });
 
             $('#resizeViewer').click(function () {
@@ -59,7 +71,7 @@
                     Font: 'bold 60pt Calibri',
                     FillColor: '#ff0000',
                     FillAlpha: 0.4,
-                    RotateAngle: 45,
+                    RotateAngle: 60,
                     Text: '中文 ImageViewer Demo',
                 });
             });
@@ -72,9 +84,11 @@
     <button id="login">login</button>
     <button id="logout">logout</button>
     <button id="loadImage">loadImage</button>
+    <button id="loadImage2">loadImage2</button>
     <button id="resizeViewer">resizeViewer</button>
     <button id="resetWaterMark">resetWaterMark</button>
 </div>
 <div style="background-color:bisque;" id="myDiv"></div>
+<div style="background-color:bisque;" id="myDiv2"></div>
 </body>
 </html>

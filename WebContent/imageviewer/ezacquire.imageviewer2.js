@@ -196,16 +196,16 @@
             }
             $('#View-'+viewNo).append(
                 '<div id="'+options.wapperId+'-PANEL-'+viewNo+'" style="width:'+viewNo+'px; height:'+options.height+'px;">' +
-                '<canvas id="watermarkCanvas-'+viewNo+'" width="'+options.width+'" height="'+options.height+'" style="width:'+options.width+'px; height: '+options.height+'px; position: absolute; z-index: 2;"></canvas>' +
-                '<div id="'+options.wapperId+'-IMAGEDIV-'+viewNo+'" style="width:'+options.width+'px; height: '+options.height+'px; padding: 0; text-align: center; position: absolute; z-index: 1;">' +
-                '<canvas id="imageCanvas-'+viewNo+'"></canvas>' +
-                '</div>' +
-                '<div id="'+options.wapperId+'-TEMPDIV-'+viewNo+'" style="width:'+options.width+'px; height: '+options.height+'px; padding: 0; text-align: center; position: absolute; z-index: 3">' +
-                '<canvas id="tempCanvas-'+viewNo+'"></canvas>' +
-                '</div>' +
-                '<div id="'+options.wapperId+'-DRAWDIV-'+viewNo+'" style="width:'+options.width+'px; height: '+options.height+'px; padding: 0; text-align: center; position: absolute; z-index: 4">' +
-                '<canvas id="annotationCanvas-'+viewNo+'"></canvas>' +
-                '</div>' +
+                    '<canvas id="watermarkCanvas-'+viewNo+'" width="'+options.width+'" height="'+options.height+'" style="width:'+options.width+'px; height: '+options.height+'px; position: absolute; z-index: 2;"></canvas>' +
+                    '<div id="'+options.wapperId+'-IMAGEDIV-'+viewNo+'" style="width:'+options.width+'px; height: '+options.height+'px; padding: 0; text-align: center; position: absolute; z-index: 1;">' +
+                        '<canvas id="imageCanvas-'+viewNo+'"></canvas>' +
+                    '</div>' +
+                    '<div id="'+options.wapperId+'-TEMPDIV-'+viewNo+'" style="width:'+options.width+'px; height: '+options.height+'px; padding: 0; text-align: center; position: absolute; z-index: 3">' +
+                        '<canvas id="tempCanvas-'+viewNo+'"></canvas>' +
+                    '</div>' +
+                    '<div id="'+options.wapperId+'-DRAWDIV-'+viewNo+'" style="width:'+options.width+'px; height: '+options.height+'px; padding: 0; text-align: center; position: absolute; z-index: 4">' +
+                        '<canvas id="annotationCanvas-'+viewNo+'"></canvas>' +
+                    '</div>' +
                 '</div>');
 
             //set Components
@@ -415,7 +415,7 @@
                 }
                 $viewers[viewNo]._mouseMode = MouseMode.None;
             });
-        },
+            },
 
         loadImage : function(imageServerUrl, tiff, currentPage, totalPage, properties, viewNo) {
 
@@ -436,9 +436,9 @@
                     xhr.open('GET', url);
                     xhr.responseType = 'arraybuffer';
                     xhr.onload = function () {
+                        let t0 = performance.now();
                         let ifds = UTIF.decode(xhr.response);
                         UTIF.decodeImages(xhr.response, ifds);
-                        let t0 = performance.now();
                         let rgba  = UTIF.toRGBA8(ifds[0]);
                         let ctx = $imageCanvas[viewNo].getContext('2d');
                         let imgData = ctx.createImageData(ifds[0].width, ifds[0].height);
@@ -516,7 +516,6 @@
         },
 
         resetCanvas : function(viewNo) {
-
             if ($imageScrollPaneAPI[viewNo].getIsScrollableH()) {
                 $imageScrollPaneAPI[viewNo].scrollToX(0);
                 $tempScrollPaneAPI[viewNo].scrollToX(0);
@@ -535,7 +534,6 @@
             $annotationCanvas[viewNo].setAttribute('style','width:'+$viewers[viewNo]._canvasDisplayWidth+'px; height:'+$viewers[viewNo]._canvasDisplayHeight+'px; margin:0px; z-index: 4');
             $annotationScrollPaneAPI[viewNo].reinitialise();
 
-
             // move scroll
             if ($imageScrollPaneAPI[viewNo].getContentWidth() > $viewers[viewNo]._viewerWidth) {
                 if ($viewers[viewNo]._centerX * $viewers[viewNo]._currentScale > $viewers[viewNo]._viewerWidth / 2) {
@@ -551,7 +549,6 @@
                     $annotationScrollPaneAPI[viewNo].scrollToY($viewers[viewNo]._centerY * $viewers[viewNo]._currentScale - $viewers[viewNo]._viewerHeight / 2);
                 }
             }
-
         },
 
         loadAnnotation: function() {

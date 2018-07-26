@@ -1,7 +1,7 @@
 (function ($) {
     'use strict';
-    let $imageViewer = null;
-    let $viewerData = [];
+    let $viewerNumber = 0;
+    let $imageViewer = [];
     let $imageData = [];
     let $image = [];
     let $waterMark = {
@@ -60,20 +60,6 @@
 
     let $mouseTrack = { startX: 0, startY: 0, endX: 0, endY: 0};
 
-    let $importVariable = {
-        viewerWidth: null, viewerHeight: null,
-        minWidth: null,
-        closeMaxAndUnmax: null,
-        //外部傳入影像資訊
-        imageServerUrl: null,
-        imageInfo : [{ docId: "", formId: "", currentPage: "", viewPage: "", totalPage: ""}],
-        //DisplayMode : { fitWidth: 0, fitHeight: 1, fitWindow: 2, fullSize: 3 };
-        initDisplayMode : null,
-        waterMarkText : null,
-        // 沒有 tool 就沒有 annotation
-        showAnnotationTool: null
-    };
-
     let $viewers = [];
 
     let $moveTo = {
@@ -107,122 +93,85 @@
 //======================================================================================================================
 //imageviewer
     $.fn.imageviewer = function (options) {
-        $imageViewer = $.extend($imageViewer,$function);
 
-        this.init = function (options) {
-            $viewerData[0] = $.extend($viewerData[0], options);
-            $variable._wapperId = $(this).attr("id");
+        $viewerNumber++;
+        $imageViewer[$viewerNumber] = options;
+        $imageViewer[$viewerNumber].viewNo = $viewerNumber;
+        $imageViewer[$viewerNumber].wapperId = $(this).attr('id');
+        options = $imageViewer[$viewerNumber];
 
-            $variable._showAnnotation = $viewerData[0].showAnnotationTool;
-            $innerFunction.renderViewer(options, 0);
-    };
-        this.init(options);
-        return $imageViewer;
-    };
-//----------------------------------------------------------------------------------------------------------------------
-//Functions
-    let $function = {
-        setWaterMark: function(options) {
-            $.extend($waterMark, options);
-            if ($viewerData[0].showWaterMark) {
-                for (let viewNo in $watermarkCanvas) {
-                    $innerFunction.drawWaterMark(viewNo);
-                }
+        $imageViewer[$viewerNumber].init = function(options) {
+
+            $variable._showAnnotation = options.showAnnotationTool;
+            $innerFunction.renderViewer(options, $imageViewer[$viewerNumber].viewNo);
+        };
+
+        $imageViewer[$viewerNumber].loadImage = function(imageServerUrl, tiff, currentPage, totalPage, properties) {
+            $imageData[options.viewNo] = {
+                imageServerUrl : imageServerUrl,
+                tiff : tiff,
+                currentPage : currentPage,
+                totalPage : totalPage,
+                properties : properties,
+                viewNo : options.viewNo
+            };
+            $innerFunction.loadImage(imageServerUrl, tiff, currentPage, totalPage, properties, options.viewNo);
+            $innerFunction.setPage(currentPage, totalPage, options.wapperId, options.viewNo);
+        };
+
+        $imageViewer[$viewerNumber].setWaterMark = function(waterMarkOptions) {
+            $.extend($waterMark, waterMarkOptions);
+            if ($imageViewer[options.viewNo].showWaterMark) {
+                $innerFunction.drawWaterMark(options.width, options.height, options.viewNo);
             }
-        },
+        };
 
-        loadImage: function(imageServerUrl, tiff, currentPage, totalPage, properties) {
-            $imageData[0] = { imageServerUrl, tiff, currentPage, totalPage, properties };
+        $imageViewer[$viewerNumber].resizeViewer = function(width, height, minWidth) {
 
-            let keys = Object.keys(properties);
-            let GETinfo = '';
-            for (let i=0; i<keys.length; i++) {
-                if (properties[keys[i]] !== '') { GETinfo += keys[i]+'='+properties[keys[i]]+'&'; }
+            $imageViewer[options.viewNo].width = width;
+            $imageViewer[options.viewNo].height = height;
+            $imageViewer[options.viewNo].minWidth = minWidth;
+            $('#'+options.wapperId).empty();
+            $innerFunction.renderViewer($imageViewer[options.viewNo], options.viewNo);
+            if ($image[options.viewNo] !== undefined) {
+                $innerFunction.loadImage($imageData[options.viewNo].imageServerUrl, $imageData[options.viewNo].tiff, $imageData[options.viewNo].currentPage, $imageData[options.viewNo].totalPage, $imageData[options.viewNo].properties, options.viewNo);
+                $innerFunction.setPage($imageData[options.viewNo].currentPage, $imageData[options.viewNo].totalPage, options.wapperId, options.viewNo);
             }
-            GETinfo += 'currentPage='+currentPage+'&totalPage='+totalPage;
+        };
 
-            if (tiff) {
-                GETinfo += '&type=tiff';
-                let url = imageServerUrl+'?'+GETinfo;
-                let xhr = new XMLHttpRequest();
-                xhr.open('GET', url);
-                xhr.responseType = 'arraybuffer';
-                xhr.onload = function () {
-                    let t0 = performance.now();
-                    $image[0] = new Image();
-                    $image[0].src = new Tiff({buffer: xhr.response}).toDataURL();
-                    $image[0].onload = function () {
-                        let t1 = performance.now();
-                        console.log('Load image decode tiff, took t1-t0 ' +(t1-t0)+ ' milliseconds.');
-                        $innerFunction.setImageInViewer($image[0], 0);};
-                };
-                xhr.send();
-            } else {
-                GETinfo = GETinfo.substring(0,GETinfo.length-1);
-                let url = imageServerUrl+'?'+GETinfo;
-                let t0 = performance.now();
-                $image[0] = new Image();
-                $image[0].src = url;
-                $image[0].onload = function () {
-                    let t1 = performance.now();
-                    console.log('Load image, took t1-t0 ' +(t1-t0)+ ' milliseconds.');
-                    $innerFunction.setImageInViewer($image[0], 0);
-                };
-            }
-            $('#dummy-currentPage-'+0).val(currentPage);
-            $('#dummy-totalPage-'+0).html(' /'+totalPage);
-            $('#'+$variable._wapperId+'-btnPrev-'+0).prop('disabled',false);
-            $('#'+$variable._wapperId+'-btnNext-'+0).prop('disabled',false);
-            if ($('#dummy-currentPage-'+0).val() === '1') { $('#'+$variable._wapperId+'-btnPrev-'+0).prop('disabled',true); }
-            if ($('#dummy-currentPage-'+0).val() === $imageData[0].totalPage.toString()) { $('#'+$variable._wapperId+'-btnNext-'+0).prop('disabled',true); }
+        $imageViewer[$viewerNumber].moveTo = function(page, x, y, width, height) {
 
-        },
-
-        resizeViewer: function(width, height, minWidth) {
-            $viewerData[0].width = width;
-            $viewerData[0].height = height;
-            $viewerData[0].minWidth = minWidth;
-            $('#'+$variable._wapperId).empty();
-            $innerFunction.renderViewer($viewerData[0], 0);
-            if ($image[0] !== undefined) {
-                $('#dummy-currentPage-'+0).val($imageData[0].currentPage);
-                $('#dummy-totalPage-'+0).html(' /'+$imageData[0].totalPage);
-                $('#'+$variable._wapperId+'-btnPrev-'+0).prop('disabled',false);
-                $('#'+$variable._wapperId+'-btnNext-'+0).prop('disabled',false);
-                if ($('#dummy-currentPage-'+0).val() === '1') { $('#'+$variable._wapperId+'-btnPrev-'+0).prop('disabled',true); }
-                if ($('#dummy-currentPage-'+0).val() === $imageData[0].totalPage.toString()) { $('#'+$variable._wapperId+'-btnNext-'+0).prop('disabled',true); }
-                $innerFunction.setImageInViewer($image[0], 0);
-            }
-        },
-
-        moveTo: function(page, x, y, width, height) {
-
-            $moveTo.viewNo = 0;       $moveTo.page = page;
+            loadFromMoveTo = true;
+            $moveTo.viewNo = options.viewNo;       $moveTo.page = page;
             $moveTo.x = x;            $moveTo.y = y;
             $moveTo.width = width;    $moveTo.height = height;
 
-            if(page !== parseInt($('#dummy-currentPage-'+0).val()))
+            if(page !== parseInt($('#dummy-currentPage-'+options.viewNo).val()))
             {
-                $imageData[0].currentPage = page;
-                loadFromMoveTo = true;
-                $function.loadImage($imageData[0].imageServerUrl, $imageData[0].tiff, $imageData[0].currentPage, $imageData[0].totalPage, $imageData[0].properties);
+                $imageData[options.viewNo].currentPage = page;
+                $innerFunction.loadImage($imageData[options.viewNo].imageServerUrl, $imageData[options.viewNo].tiff, $imageData[options.viewNo].currentPage, $imageData[options.viewNo].totalPage, $imageData[options.viewNo].properties, options.viewNo);
+                $innerFunction.setPage($imageData[options.viewNo].currentPage, $imageData[options.viewNo].totalPage, options.wapperId, options.viewNo);
             } else {
-                $innerFunction.zoomArea(x, y, width, height, 0);
+                $innerFunction.zoomArea(x, y, width, height, options.viewNo);
             }
-        }
+
+        };
+
+        $imageViewer[$viewerNumber].init($imageViewer[$viewerNumber]);
+        return $imageViewer[$viewerNumber];
     };
 //----------------------------------------------------------------------------------------------------------------------
 //Inner Functions
     let $innerFunction = {
         renderViewer : function(options, viewNo) {
-            $('#'+$variable._wapperId).append('<div id=View-'+viewNo+'></div>');
-        //  render viewer
-        /*  myId - toolbar
-                 - viewerPanel - annotationContain - annotationCanvas (z-index: 4, 所有滑鼠在這一層 listener)
-                 - tempCanvas (z-index: 3)
-                 - watermarkCanvas (z-index: 2)
-                 - imageContain - imageCanvas (z-index: 1)
-        */
+            $('#'+options.wapperId).append('<div id=View-'+viewNo+'></div>');
+            //  render viewer
+            /*  myId - toolbar
+                     - viewerPanel - annotationContain - annotationCanvas (z-index: 4, 所有滑鼠在這一層 listener)
+                     - tempCanvas (z-index: 3)
+                     - watermarkCanvas (z-index: 2)
+                     - imageContain - imageCanvas (z-index: 1)
+            */
             if (options.showToolBar) {
                 $('#View-'+viewNo).append('<div id=dummy-tool-btn-warp-'+viewNo+' style="background-color:darkgray; width:'+options.width+'px; z-index: 4"></div>');
                 if (!options.showAnnotationTool) {
@@ -237,32 +186,32 @@
                 }
                 for (let i in $toolsBtn) {
                     $('#dummy-tool-btn-warp-'+viewNo).append(
-                    '<button type="button" id="'+$variable._wapperId+'-'+$toolsBtn[i].id+'-'+viewNo+'" class="tbtn-btn-primary" title="'+$toolsBtn[i].title+'" style="width: 35px"><i class="fa '+$toolsBtn[i].css+' fa-1x"></i></button>');
-                    if (!$toolsBtn[i].show) {$('#'+$variable._wapperId+'-'+$toolsBtn[i].id+'-'+viewNo).css({display : 'none'});}
+                        '<button type="button" id="'+options.wapperId+'-'+$toolsBtn[i].id+'-'+viewNo+'" class="tbtn-btn-primary" title="'+$toolsBtn[i].title+'" style="width: 35px"><i class="fa '+$toolsBtn[i].css+' fa-1x"></i></button>');
+                    if (!$toolsBtn[i].show) {$('#'+options.wapperId+'-'+$toolsBtn[i].id+'-'+viewNo).css({display : 'none'});}
                 }
-                $('#'+$variable._wapperId+'-btnNext-'+viewNo).after('<span><input type="text" maxlength=3 style="width:24px;" id=dummy-currentPage-'+viewNo+'><span id=dummy-totalPage-'+viewNo+'>/</span></span>');
-                $('#'+$variable._wapperId+'-btnUnMax-'+viewNo).css({float : 'right'});
-                $('#'+$variable._wapperId+'-btnMax-'+viewNo).css({float : 'right'});
+                $('#'+options.wapperId+'-btnNext-'+viewNo).after('<span><input type="text" maxlength=3 style="width:24px;" id=dummy-currentPage-'+viewNo+'><span id=dummy-totalPage-'+viewNo+'>/</span></span>');
+                $('#'+options.wapperId+'-btnUnMax-'+viewNo).css({float : 'right'});
+                $('#'+options.wapperId+'-btnMax-'+viewNo).css({float : 'right'});
 
             }
             $('#View-'+viewNo).append(
-                '<div id="'+$variable._wapperId+'-PANEL-'+viewNo+'" style="width:'+viewNo+'px; height:'+options.height+'px;">' +
+                '<div id="'+options.wapperId+'-PANEL-'+viewNo+'" style="width:'+viewNo+'px; height:'+options.height+'px;">' +
                     '<canvas id="watermarkCanvas-'+viewNo+'" width="'+options.width+'" height="'+options.height+'" style="width:'+options.width+'px; height: '+options.height+'px; position: absolute; z-index: 2;"></canvas>' +
-                    '<div id="'+$variable._wapperId+'-IMAGEDIV-'+viewNo+'" style="width:'+options.width+'px; height: '+options.height+'px; padding: 0; text-align: center; position: absolute; z-index: 1;">' +
+                    '<div id="'+options.wapperId+'-IMAGEDIV-'+viewNo+'" style="width:'+options.width+'px; height: '+options.height+'px; padding: 0; text-align: center; position: absolute; z-index: 1;">' +
                         '<canvas id="imageCanvas-'+viewNo+'"></canvas>' +
                     '</div>' +
-                    '<div id="'+$variable._wapperId+'-TEMPDIV-'+viewNo+'" style="width:'+options.width+'px; height: '+options.height+'px; padding: 0; text-align: center; position: absolute; z-index: 3">' +
+                    '<div id="'+options.wapperId+'-TEMPDIV-'+viewNo+'" style="width:'+options.width+'px; height: '+options.height+'px; padding: 0; text-align: center; position: absolute; z-index: 3">' +
                         '<canvas id="tempCanvas-'+viewNo+'"></canvas>' +
                     '</div>' +
-                    '<div id="'+$variable._wapperId+'-DRAWDIV-'+viewNo+'" style="width:'+options.width+'px; height: '+options.height+'px; padding: 0; text-align: center; position: absolute; z-index: 4">' +
+                    '<div id="'+options.wapperId+'-DRAWDIV-'+viewNo+'" style="width:'+options.width+'px; height: '+options.height+'px; padding: 0; text-align: center; position: absolute; z-index: 4">' +
                         '<canvas id="annotationCanvas-'+viewNo+'"></canvas>' +
                     '</div>' +
                 '</div>');
 
-        //set Components
+            //set Components
             $watermarkCanvas[viewNo] = document.getElementById('watermarkCanvas-'+viewNo);
 
-            if ($viewerData[0].showWaterMark) { $innerFunction.drawWaterMark(viewNo); }
+            if (options.showWaterMark) { $innerFunction.drawWaterMark(options.width, options.height, viewNo); }
             $imageCanvas[viewNo] = document.getElementById('imageCanvas-'+viewNo);
             $tempCanvas[viewNo] = document.getElementById('tempCanvas-'+viewNo);
             $annotationCanvas[viewNo] = document.getElementById('annotationCanvas-'+viewNo);
@@ -281,10 +230,10 @@
                 _maxClicked: true,
             };
 
-            $imageContain[viewNo] = $('#'+$variable._wapperId+'-IMAGEDIV-'+viewNo);
+            $imageContain[viewNo] = $('#'+options.wapperId+'-IMAGEDIV-'+viewNo);
             $imageScrollPaneAPI[viewNo] = $imageContain[viewNo].jScrollPane({ showArrows: false }).data('jsp');
 
-            $tempContain[viewNo] = $('#'+$variable._wapperId+'-TEMPDIV-'+viewNo);
+            $tempContain[viewNo] = $('#'+options.wapperId+'-TEMPDIV-'+viewNo);
             $tempScrollPaneAPI[viewNo] = $tempContain[viewNo]
                 .bind('jsp-scroll-x', function(event, scrollPositionX) {
                     $imageScrollPaneAPI[viewNo].scrollToX(scrollPositionX);
@@ -295,7 +244,7 @@
                 .jScrollPane({ showArrows: false })
                 .data('jsp');
 
-            $annotationContain[viewNo] = $('#'+$variable._wapperId+'-DRAWDIV-'+viewNo);
+            $annotationContain[viewNo] = $('#'+options.wapperId+'-DRAWDIV-'+viewNo);
             $annotationScrollPaneAPI[viewNo] = $annotationContain[viewNo]
                 .bind('jsp-scroll-x', function(event, scrollPositionX) {
                     $tempScrollPaneAPI[viewNo].scrollToX(scrollPositionX);
@@ -307,25 +256,25 @@
                 .data('jsp');
 
             if ($variable.showToolBar) {
-                $('#'+$variable._wapperId+'-btnFitHeight-'+viewNo).click(function () {
+                $('#'+options.wapperId+'-btnFitHeight-'+viewNo).click(function () {
                     $innerFunction.scale('fitHeight', viewNo);
                 });
-                $('#'+$variable._wapperId+'-btnFitWidth-'+viewNo).click(function () {
+                $('#'+options.wapperId+'-btnFitWidth-'+viewNo).click(function () {
                     $innerFunction.scale('fitWidth', viewNo);
                 });
-                $('#'+$variable._wapperId+'-btnFullSize-'+viewNo).click(function () {
+                $('#'+options.wapperId+'-btnFullSize-'+viewNo).click(function () {
                     $innerFunction.scale('fullSize', viewNo);
                 });
-                $('#'+$variable._wapperId+'-btnZoomIn-'+viewNo).click(function () {
+                $('#'+options.wapperId+'-btnZoomIn-'+viewNo).click(function () {
                     $innerFunction.scale('zoomIn', viewNo);
                 });
-                $('#'+$variable._wapperId+'-btnZoomOut-'+viewNo).click(function () {
+                $('#'+options.wapperId+'-btnZoomOut-'+viewNo).click(function () {
                     $innerFunction.scale('zoomOut', viewNo);
                 });
-                $('#'+$variable._wapperId+'-btnRotateCW-'+viewNo).click(function () {
+                $('#'+options.wapperId+'-btnRotateCW-'+viewNo).click(function () {
                     $innerFunction.rotate(90, viewNo);
                 });
-                $('#'+$variable._wapperId+'-btnRotateCCW-'+viewNo).click(function () {
+                $('#'+options.wapperId+'-btnRotateCCW-'+viewNo).click(function () {
                     $innerFunction.rotate(-90, viewNo);
                 });
 
@@ -355,73 +304,67 @@
                 });
                 */
 
-                $('#'+$variable._wapperId+'-btnPrev-'+viewNo).click(function () {
-                    $imageData[0].currentPage--;
+                $('#'+options.wapperId+'-btnPrev-'+viewNo).click(function () {
+                    $imageData[viewNo].currentPage--;
                     loadFromMoveTo = false;
-                    $function.loadImage($imageData[0].imageServerUrl, $imageData[0].tiff, $imageData[0].currentPage, $imageData[0].totalPage, $imageData[0].properties);
+                    $innerFunction.loadImage($imageData[viewNo].imageServerUrl, $imageData[viewNo].tiff, $imageData[viewNo].currentPage, $imageData[viewNo].totalPage, $imageData[viewNo].properties, viewNo);
+                    $innerFunction.setPage($imageData[viewNo].currentPage, $imageData[viewNo].totalPage, options.wapperId, viewNo);
+                    $viewers[viewNo]._rotate = 0;
                 });
 
-                $('#'+$variable._wapperId+'-btnNext-'+viewNo).click(function () {
-                    $imageData[0].currentPage++;
+                $('#'+options.wapperId+'-btnNext-'+viewNo).click(function () {
+                    $imageData[viewNo].currentPage++;
                     loadFromMoveTo = false;
-                    $function.loadImage($imageData[0].imageServerUrl, $imageData[0].tiff, $imageData[0].currentPage, $imageData[0].totalPage, $imageData[0].properties);
+                    $innerFunction.loadImage($imageData[viewNo].imageServerUrl, $imageData[viewNo].tiff, $imageData[viewNo].currentPage, $imageData[viewNo].totalPage, $imageData[viewNo].properties, viewNo);
+                    $innerFunction.setPage($imageData[viewNo].currentPage, $imageData[viewNo].totalPage, options.wapperId, viewNo);
+                    $viewers[viewNo]._rotate = 0;
                 });
 
-                $('#'+$variable._wapperId+'-btnUnMax-'+viewNo).click(function () {
+                $('#'+options.wapperId+'-btnUnMax-'+viewNo).click(function () {
 
-                    $viewerData[0].width = [$viewerData[0].width, $viewerData[0].minWidth];
-                    $viewerData[0].minWidth = $viewerData[0].width[0];
-                    $viewerData[0].width = $viewerData[0].width[1];
-                    $(this).parent().parent().parent().empty();
+                    options.width = [options.width, options.minWidth];
+                    options.minWidth = options.width[0];
+                    options.width = options.width[1];
+                    $('#'+options.wapperId).empty();
 
-                    $innerFunction.renderViewer($viewerData[0], viewNo);
+                    $innerFunction.renderViewer(options, viewNo);
                     if ($image[viewNo] !== undefined) {
-                        $('#dummy-currentPage-'+viewNo).val($imageData[0].currentPage);
-                        $('#dummy-totalPage-'+viewNo).html(' /'+$imageData[0].totalPage);
-                        $('#'+$variable._wapperId+'-btnPrev-'+viewNo).prop('disabled',false);
-                        $('#'+$variable._wapperId+'-btnNext-'+viewNo).prop('disabled',false);
-                        if ($('#dummy-currentPage-'+viewNo).val() === '1') { $('#'+$variable._wapperId+'-btnPrev-'+0).prop('disabled',true); }
-                        if ($('#dummy-currentPage-'+viewNo).val() === $imageData[0].totalPage.toString()) { $('#'+$variable._wapperId+'-btnNext-'+0).prop('disabled',true); }
-                        $innerFunction.setImageInViewer($image[viewNo], viewNo);
+                        $innerFunction.loadImage($imageData[viewNo].imageServerUrl, $imageData[viewNo].tiff, $imageData[viewNo].currentPage, $imageData[viewNo].totalPage, $imageData[viewNo].properties, viewNo);
+                        $innerFunction.setPage($imageData[viewNo].currentPage, $imageData[viewNo].totalPage, options.wapperId, viewNo);
                     }
 
-                    $('#'+$variable._wapperId+'-btnUnMax-'+viewNo).hide();
-                    $('#'+$variable._wapperId+'-btnMax-'+viewNo).show();
+                    $('#'+options.wapperId+'-btnUnMax-'+viewNo).hide();
+                    $('#'+options.wapperId+'-btnMax-'+viewNo).show();
                 });
 
-                $('#'+$variable._wapperId+'-btnMax-'+viewNo).click(function () {
+                $('#'+options.wapperId+'-btnMax-'+viewNo).click(function () {
 
-                    $viewerData[0].width = [$viewerData[0].width, $viewerData[0].minWidth];
-                    $viewerData[0].minWidth = $viewerData[0].width[0];
-                    $viewerData[0].width = $viewerData[0].width[1];
-                    $(this).parent().parent().parent().empty();
+                    options.width = [options.width, options.minWidth];
+                    options.minWidth = options.width[0];
+                    options.width = options.width[1];
+                    $('#'+options.wapperId).empty();
 
-                    $innerFunction.renderViewer($viewerData[0], viewNo);
+                    $innerFunction.renderViewer(options, viewNo);
                     if ($image[viewNo] !== undefined) {
-                        $('#dummy-currentPage-'+viewNo).val($imageData[0].currentPage);
-                        $('#dummy-totalPage-'+viewNo).html(' /'+$imageData[0].totalPage);
-                        $('#'+$variable._wapperId+'-btnPrev-'+viewNo).prop('disabled',false);
-                        $('#'+$variable._wapperId+'-btnNext-'+viewNo).prop('disabled',false);
-                        if ($('#dummy-currentPage-'+viewNo).val() === '1') { $('#'+$variable._wapperId+'-btnPrev-'+0).prop('disabled',true); }
-                        if ($('#dummy-currentPage-'+viewNo).val() === $imageData[0].totalPage.toString()) { $('#'+$variable._wapperId+'-btnNext-'+0).prop('disabled',true); }
-                        $innerFunction.setImageInViewer($image[viewNo], viewNo);
+                        $innerFunction.loadImage($imageData[viewNo].imageServerUrl, $imageData[viewNo].tiff, $imageData[viewNo].currentPage, $imageData[viewNo].totalPage, $imageData[viewNo].properties, viewNo);
+                        $innerFunction.setPage($imageData[viewNo].currentPage, $imageData[viewNo].totalPage, options.wapperId, viewNo);
                     }
-                    $('#'+$variable._wapperId+'-btnMax-'+viewNo).hide();
-                    $('#'+$variable._wapperId+'-btnUnMax-'+viewNo).show();
+                    $('#'+options.wapperId+'-btnMax-'+viewNo).hide();
+                    $('#'+options.wapperId+'-btnUnMax-'+viewNo).show();
                 });
 
                 $('#dummy-currentPage-'+viewNo).keypress(function (e) {
                     if(e.which === 13) {
                         let currentPage = $('#dummy-currentPage-'+viewNo).val();
-                        if (currentPage >= 1 && currentPage <= $imageData[0].totalPage) {
+                        if (currentPage >= 1 && currentPage <= $imageData[viewNo].totalPage) {
                         } else {
                             alert("error");
                             currentPage = 1;
                             $('#dummy-currentPage-'+viewNo).val(currentPage);
                         }
-                        $imageData[0].currentPage = currentPage;
+                        $imageData[viewNo].currentPage = currentPage;
                         loadFromMoveTo = false;
-                        $function.loadImage($imageData[0].imageServerUrl, $imageData[0].tiff, $imageData[0].currentPage, $imageData[0].totalPage, $imageData[0].properties);
+                        $innerFunction.loadImage($imageData[viewNo].imageServerUrl, $imageData[viewNo].tiff, $imageData[viewNo].currentPage, $imageData[viewNo].totalPage, $imageData[viewNo].properties, viewNo);
                     }
                 })
             }
@@ -474,7 +417,73 @@
             });
             },
 
-        setImageInViewer : function(image, viewNo) {
+        loadImage : function(imageServerUrl, tiff, currentPage, totalPage, properties, viewNo) {
+
+            let keys = Object.keys(properties);
+            let GETinfo = '';
+            for (let i=0; i<keys.length; i++) {
+                if (properties[keys[i]] !== '') { GETinfo += keys[i]+'='+properties[keys[i]]+'&'; }
+            }
+            GETinfo += 'currentPage='+currentPage+'&totalPage='+totalPage;
+            if ($image[viewNo] === undefined || $image[viewNo].currentPage !== currentPage) {
+                $image[viewNo] = {image: new Image(),viewNo: viewNo,currentPage: currentPage};
+
+                if (tiff) {
+                    GETinfo += '&type=tiff';
+                    console.log('Load image from tiff');
+                    let url = imageServerUrl+'?'+GETinfo;
+                    let xhr = new XMLHttpRequest();
+                    xhr.open('GET', url);
+                    xhr.responseType = 'arraybuffer';
+                    xhr.onload = function () {
+                        let t0 = performance.now();
+                        $image[viewNo].image.src = new Tiff({buffer: xhr.response}).toDataURL();
+                        $image[viewNo].image.onload = function () {
+                            let t1 = performance.now();
+                            $innerFunction.setImage($image[viewNo].image, viewNo);
+                            let ctx = $imageCanvas[viewNo].getContext('2d');
+                            ctx.drawImage($image[viewNo].image, 0, 0);
+                            console.log('Load image, took t1-t0 ' +(t1-t0)+ ' milliseconds.');
+                            if (loadFromMoveTo) {
+                                $innerFunction.zoomArea($moveTo.x, $moveTo.y, $moveTo.width, $moveTo.height, $moveTo.viewNo)
+                            }
+                        };
+                    };
+                    xhr.send();
+                } else {
+                    GETinfo = GETinfo.substring(0,GETinfo.length-1);
+                    console.log('Load image from png');
+                    let url = imageServerUrl+'?'+GETinfo;
+                    let t0 = performance.now();
+                    $image[viewNo].image.src = url;
+                    $image[viewNo].image.onload = function () {
+                        let t1 = performance.now();
+                        $innerFunction.setImage($image[viewNo].image, viewNo);
+                        let ctx = $imageCanvas[viewNo].getContext('2d');
+                        ctx.drawImage($image[viewNo].image, 0, 0);
+                        console.log('Load image, took t1-t0 ' +(t1-t0)+ ' milliseconds.');
+                        if (loadFromMoveTo) {
+                            $innerFunction.zoomArea($moveTo.x, $moveTo.y, $moveTo.width, $moveTo.height, $moveTo.viewNo)
+                        }
+                    };
+                }
+            } else {
+                $innerFunction.setImage($image[viewNo].image, viewNo);
+                let ctx = $imageCanvas[viewNo].getContext('2d');
+                ctx.drawImage($image[viewNo].image, 0, 0);
+            }
+        },
+
+        setPage : function(currentPage, totalPage, wapperId, viewNo) {
+            $('#dummy-currentPage-'+viewNo).val(currentPage);
+            $('#dummy-totalPage-'+viewNo).html(' /'+totalPage);
+            $('#'+wapperId+'-btnPrev-'+viewNo).prop('disabled',false);
+            $('#'+wapperId+'-btnNext-'+viewNo).prop('disabled',false);
+            if ($('#dummy-currentPage-'+viewNo).val() === '1') { $('#'+wapperId+'-btnPrev-'+viewNo).prop('disabled',true); }
+            if ($('#dummy-currentPage-'+viewNo).val() === totalPage.toString()) { $('#'+wapperId+'-btnNext-'+viewNo).prop('disabled',true); }
+        },
+
+        setImage : function(image, viewNo) {
             $viewers[viewNo]._oriImageWidth = image.width;           $viewers[viewNo]._oriImageHeight = image.height;
             $viewers[viewNo]._imageWidth = $viewers[viewNo]._oriImageWidth;
             $viewers[viewNo]._imageHeight = $viewers[viewNo]._oriImageHeight;
@@ -485,7 +494,6 @@
             let scale2 = $viewers[viewNo]._viewerHeight / $viewers[viewNo]._imageHeight;
             $viewers[viewNo]._minScale = scale1 < scale2 ? scale1 : scale2;
 
-
             $imageCanvas[viewNo].width = $viewers[viewNo]._imageWidth ;
             $imageCanvas[viewNo].height = $viewers[viewNo]._imageHeight;
             $tempCanvas[viewNo].width = $viewers[viewNo]._imageWidth;
@@ -495,18 +503,8 @@
             $viewers[viewNo]._centerX = $viewers[viewNo]._imageWidth / 2;
             $viewers[viewNo]._centerY = $viewers[viewNo]._imageHeight / 2;
 
-            let ctx = $imageCanvas[viewNo].getContext('2d');
-            ctx.drawImage($image[viewNo], 0, 0);
-
-            if ($viewerData[0].initDisplayMode !== '') {
-                $innerFunction.scale($viewerData[0].initDisplayMode, viewNo);
-            }
-
-            if (loadFromMoveTo) {
-                $innerFunction.zoomArea($moveTo.x, $moveTo.y, $moveTo.width, $moveTo.height, 0);
-                loadFromMoveTo = false;
-            }
             $innerFunction.resetCanvas(viewNo);
+            $innerFunction.scale($imageViewer[viewNo].initDisplayMode, viewNo);
         },
 
         resetCanvas : function(viewNo) {
@@ -604,7 +602,7 @@
             let ctx = $imageCanvas[viewNo].getContext('2d');
             ctx.translate($viewers[viewNo]._centerX, $viewers[viewNo]._centerY);
             ctx.rotate($viewers[viewNo]._rotate/180*Math.PI);
-            ctx.drawImage($image[viewNo], -$viewers[viewNo]._oriImageWidth/2, -$viewers[viewNo]._oriImageHeight/2);
+            ctx.drawImage($image[viewNo].image, -$image[viewNo].image.width/2, -$image[viewNo].image.height/2);
             ctx.rotate(-$viewers[viewNo]._rotate/180*Math.PI);
             ctx.translate(-$viewers[viewNo]._centerX, -$viewers[viewNo]._centerY);
 
@@ -643,11 +641,11 @@
             $viewers[viewNo]._canvasDisplayHeight = $viewers[viewNo]._imageHeight * $viewers[viewNo]._currentScale;
         },
 
-        drawWaterMark: function(viewNo) {
+        drawWaterMark: function(width, height, viewNo) {
             let context = $watermarkCanvas[viewNo].getContext('2d');
             context.save();
-            context.clearRect(0,0,$viewerData[0].width,$viewerData[0].height);
-            context.translate($viewerData[0].width / 2, $viewerData[0].height / 2);
+            context.clearRect(0,0,width,height);
+            context.translate(width/2, height/2);
             context.rotate(Math.PI*$waterMark.RotateAngle / 180);
             context.textAlign = 'center';
             context.font = $waterMark.Font;
