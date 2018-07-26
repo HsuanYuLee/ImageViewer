@@ -75,6 +75,10 @@
                     Text: '中文 ImageViewer Demo',
                 });
             });
+
+            $('#clearViewer').click(function () {
+                myViewer.clearViewer();
+            });
         });
     </script>
 </head>
@@ -87,6 +91,7 @@
     <button id="loadImage2">loadImage2</button>
     <button id="resizeViewer">resizeViewer</button>
     <button id="resetWaterMark">resetWaterMark</button>
+    <button id="clearViewer">clearViewer</button>
 </div>
 <div style="background-color:bisque;" id="myDiv"></div>
 <div style="background-color:bisque;" id="myDiv2"></div>
