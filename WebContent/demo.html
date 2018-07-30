@@ -30,22 +30,26 @@
                                 minWidth: 750,
                                 height: 600,
                                 closeMaxAndUnmax: false,
-                                initDisplayMode: 'fitWidth',
+                                initDisplayMode: 'fullSize',
                                 showWaterMark: true,
                                 showToolBar: true,
                                 showAnnotationTool: false,
                             });
 
+                            /*
                             myViewer2 = $('#myDiv2').imageviewer({
                                 width: 1000,
                                 minWidth: 750,
                                 height: 600,
                                 closeMaxAndUnmax: false,
-                                initDisplayMode: 'fitWidth',
+                                initDisplayMode: 'fitWindow',
                                 showWaterMark: true,
                                 showToolBar: true,
                                 showAnnotationTool: false,
                             });
+
+
+                             */
                         }
                     });
                     log = true;
@@ -55,7 +59,7 @@
             $('#logout').click(function () { location.reload(); });
             $('#loadImage').click(function () {
                 myViewer.loadImage
-                ('http://localhost:8083/ImageViewer/imageServlet', true, 1, 4, {docId: '20262', formId: '', viewPage : ''} );
+                ('http://localhost:8083/ImageViewer/imageServlet', true, 1, 1, {docId: '20262', formId: '', viewPage : ''} );
             });
             $('#loadImage2').click(function () {
                 myViewer2.loadImage
