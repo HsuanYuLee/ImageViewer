@@ -119,7 +119,6 @@
             $variable._showAnnotation = options.showAnnotationTool;
             if (options.showToolBar) { $innerFunction.renderToolBar(options, $imageViewer[$viewerNumber].viewNo) }
             $innerFunction.renderViewer(options, $imageViewer[$viewerNumber].viewNo);
-            $innerFunction.renderViewerCanvas(options, $imageViewer[$viewerNumber].viewNo);
         };
 
         $imageViewer[$viewerNumber].loadImage = function(imageServerUrl, tiff, currentPage, totalPage, properties) {
@@ -151,7 +150,6 @@
 
             $('#'+options.wapperId+'-PANEL-'+options.viewNo).remove();
             $innerFunction.renderViewer($imageViewer[options.viewNo], options.viewNo);
-            $innerFunction.renderViewerCanvas($imageViewer[options.viewNo], options.viewNo);
 
             // move scroll
             $imageScrollPaneAPI[options.viewNo].scrollToX($viewers[options.viewNo]._centerX * $viewers[options.viewNo]._currentScale - $viewers[options.viewNo].viewerWidth / 2);
@@ -192,6 +190,12 @@
             $imageScrollPaneAPI[options.viewNo].reinitialise();
             $tempScrollPaneAPI[options.viewNo].reinitialise();
             $annotationScrollPaneAPI[options.viewNo].reinitialise();
+        };
+
+        $imageViewer[$viewerNumber].showPrint = function(showPrint) {
+            if (!showPrint) {
+                $('#'+options.wapperId+'-btnPrint-'+options.viewNo).css({'display' : 'none'});
+            }
         };
 
         $imageViewer[$viewerNumber].init($imageViewer[$viewerNumber]);
@@ -301,7 +305,6 @@
 
                 $('#'+options.wapperId+'-PANEL-'+viewNo).remove();
                 $innerFunction.renderViewer(options, $imageViewer[viewNo].viewNo);
-                $innerFunction.renderViewerCanvas(options, $imageViewer[viewNo].viewNo);
 
                 // move scroll
                 $imageScrollPaneAPI[viewNo].scrollToX($viewers[viewNo]._centerX * $viewers[viewNo]._currentScale - $viewers[viewNo].viewerWidth / 2);
@@ -324,7 +327,6 @@
 
                 $('#'+options.wapperId+'-PANEL-'+viewNo).remove();
                 $innerFunction.renderViewer(options, $imageViewer[viewNo].viewNo);
-                $innerFunction.renderViewerCanvas(options, $imageViewer[viewNo].viewNo);
 
                 // move scroll
                 $imageScrollPaneAPI[viewNo].scrollToX($viewers[viewNo]._centerX * $viewers[viewNo]._currentScale - $viewers[viewNo].viewerWidth / 2);
@@ -386,19 +388,80 @@
             $imageContain[viewNo] = $('#'+options.wapperId+'-IMAGEDIV-'+viewNo);
             $tempContain[viewNo] = $('#'+options.wapperId+'-TEMPDIV-'+viewNo);
             $annotationContain[viewNo] = $('#'+options.wapperId+'-DRAWDIV-'+viewNo);
-            },
-        renderViewerCanvas : function(options, viewNo) {
+            $annotationContain[viewNo].bind("contextmenu", function (e) { return false; });
+
             if ($imageCanvas[viewNo] === undefined) { $imageCanvas[viewNo] = document.getElementById('imageCanvas-'+viewNo); }
             else {
                 $imageDivElemant[viewNo].removeChild(document.getElementById('imageCanvas-'+viewNo));
                 $imageDivElemant[viewNo].appendChild($imageCanvas[viewNo]);
             }
+
             if ($tempCanvas[viewNo] === undefined) { $tempCanvas[viewNo] = document.getElementById('tempCanvas-'+viewNo); }
             else {
                 $tempDivElement[viewNo].removeChild(document.getElementById('tempCanvas-'+viewNo));
                 $tempDivElement[viewNo].appendChild($tempCanvas[viewNo]);
             }
-            if ($annotationCanvas[viewNo] === undefined) {$annotationCanvas[viewNo] = document.getElementById('annotationCanvas-'+viewNo)}
+
+            if ($annotationCanvas[viewNo] === undefined) {
+                $annotationCanvas[viewNo] = document.getElementById('annotationCanvas-'+viewNo);
+
+                let startX = null;    let startY = null;
+        //--------------------------------------------------------------------------------------------------------------
+        //Mouse Event
+                $annotationCanvas[viewNo].addEventListener('mousedown', function (e) {
+
+                    $mouseTrack.startX = e.offsetX;   $mouseTrack.startY = e.offsetY;
+
+                    if (e.button === 2) { $viewers[viewNo]._mouseMode = MouseMode.Zoom; }
+                    else if (e.button === 0) { $viewers[viewNo]._mouseMode = MouseMode.Move; }
+                    else { $viewers[viewNo]._mouseMode = MouseMode.None; }
+
+                    startX = $annotationScrollPaneAPI[viewNo].getContentPositionX();
+                    startY = $annotationScrollPaneAPI[viewNo].getContentPositionY();
+                });
+
+                $annotationCanvas[viewNo].addEventListener('mousemove', function (e) {
+                    switch ($viewers[viewNo]._mouseMode) {
+                        case MouseMode.Zoom :
+                            $innerFunction._drawRectangleInTempCanvas($mouseTrack.startX + $tempScrollPaneAPI[viewNo].getContentPositionX(), $mouseTrack.startY + $tempScrollPaneAPI[viewNo].getContentPositionY(), e.offsetX-$mouseTrack.startX, e.offsetY-$mouseTrack.startY, true, false, viewNo);
+                            break;
+                        case MouseMode.Move :
+                            let X = $annotationScrollPaneAPI[viewNo].getContentPositionX() - (e.offsetX - $mouseTrack.startX);
+                            let Y = $annotationScrollPaneAPI[viewNo].getContentPositionY() - (e.offsetY - $mouseTrack.startY);
+
+                            $imageScrollPaneAPI[viewNo].scrollTo(X,Y);
+                            $tempScrollPaneAPI[viewNo].scrollTo(X,Y);
+                            $annotationScrollPaneAPI[viewNo].scrollTo(X,Y);
+                            break;
+                    }
+                });
+
+                $annotationCanvas[viewNo].addEventListener('mouseup', function (e) {
+                    switch ($viewers[viewNo]._mouseMode) {
+                        case MouseMode.Zoom :
+                            console.log('x:'+$mouseTrack.startX+' y:'+$mouseTrack.startY+' width:'+Math.abs($mouseTrack.endX - $mouseTrack.startX)+' height:'+Math.abs($mouseTrack.endY - $mouseTrack.startY));
+                            if ($viewers[viewNo]._annoMode === AnnoMode.Edit) {
+                                $annoEditDialog[viewNo].open();
+                            } else {
+                                $mouseTrack.endX = e.offsetX;
+                                $mouseTrack.endY = e.offsetY;
+                                $innerFunction._clearTempCanvas(viewNo);
+                                let x = $mouseTrack.startX < $mouseTrack.endX ? $mouseTrack.startX : $mouseTrack.endX;
+                                let y = $mouseTrack.startY < $mouseTrack.endY ? $mouseTrack.startY : $mouseTrack.endY;
+                                $innerFunction._zoomArea(x/$viewers[viewNo]._currentScale, y/$viewers[viewNo]._currentScale, Math.abs($mouseTrack.endX - $mouseTrack.startX)/$viewers[viewNo]._currentScale, Math.abs($mouseTrack.endY - $mouseTrack.startY)/$viewers[viewNo]._currentScale, viewNo);
+                            }
+                            break;
+                        case MouseMode.Move :
+                            let A = $annotationScrollPaneAPI[viewNo].getContentPositionX() - startX;
+                            let B = $annotationScrollPaneAPI[viewNo].getContentPositionY() - startY;
+                            $viewers[viewNo]._centerX += A / $viewers[viewNo]._currentScale;
+                            $viewers[viewNo]._centerY += B / $viewers[viewNo]._currentScale;
+
+                            break;
+                    }
+                    $viewers[viewNo]._mouseMode = MouseMode.None;
+                });
+            }
             else {
                 $annotationDivElement[viewNo].removeChild(document.getElementById('annotationCanvas-'+viewNo));
                 $annotationDivElement[viewNo].appendChild($annotationCanvas[viewNo]);
@@ -415,68 +478,7 @@
                 .bind('jsp-scroll-y', function(event, scrollPositionY) { $tempScrollPaneAPI[viewNo].scrollToY(scrollPositionY); })
                 .jScrollPane({ showArrows: false })
                 .data('jsp');
-
-
-            //----------------------------------------------------------------------------------------------------------
-            //Mouse Event
-            let startX = null;
-            let startY = null;
-
-            $annotationContain[viewNo].bind("contextmenu", function (e) { return false; });
-
-            $annotationCanvas[viewNo].addEventListener('mousedown', function (e) {
-
-                $mouseTrack.startX = e.offsetX;   $mouseTrack.startY = e.offsetY;
-
-                if (e.button === 2) { $viewers[viewNo]._mouseMode = MouseMode.Zoom; }
-                else if (e.button === 0) { $viewers[viewNo]._mouseMode = MouseMode.Move; }
-                else { $viewers[viewNo]._mouseMode = MouseMode.None; }
-
-                startX = $annotationScrollPaneAPI[viewNo].getContentPositionX();
-                startY = $annotationScrollPaneAPI[viewNo].getContentPositionY();
-            });
-
-            $annotationCanvas[viewNo].addEventListener('mousemove', function (e) {
-                switch ($viewers[viewNo]._mouseMode) {
-                    case MouseMode.Zoom :
-                        $innerFunction._drawRectangleInTempCanvas($mouseTrack.startX + $tempScrollPaneAPI[viewNo].getContentPositionX(), $mouseTrack.startY + $tempScrollPaneAPI[viewNo].getContentPositionY(), e.offsetX-$mouseTrack.startX, e.offsetY-$mouseTrack.startY, true, false, viewNo);
-                        break;
-                    case MouseMode.Move :
-                        let X = $annotationScrollPaneAPI[viewNo].getContentPositionX() - (e.offsetX - $mouseTrack.startX);
-                        let Y = $annotationScrollPaneAPI[viewNo].getContentPositionY() - (e.offsetY - $mouseTrack.startY);
-
-                        $imageScrollPaneAPI[viewNo].scrollTo(X,Y);
-                        $tempScrollPaneAPI[viewNo].scrollTo(X,Y);
-                        $annotationScrollPaneAPI[viewNo].scrollTo(X,Y);
-                        break;
-                }
-            });
-
-            $annotationCanvas[viewNo].addEventListener('mouseup', function (e) {
-                switch ($viewers[viewNo]._mouseMode) {
-                    case MouseMode.Zoom :
-                        console.log('x:'+$mouseTrack.startX+' y:'+$mouseTrack.startY+' width:'+Math.abs($mouseTrack.endX - $mouseTrack.startX)+' height:'+Math.abs($mouseTrack.endY - $mouseTrack.startY));
-                        if ($viewers[viewNo]._annoMode === AnnoMode.Edit) {
-                            $annoEditDialog[viewNo].open();
-                        } else {
-                            $mouseTrack.endX = e.offsetX;
-                            $mouseTrack.endY = e.offsetY;
-                            $innerFunction._clearTempCanvas(viewNo);
-                            let x = $mouseTrack.startX < $mouseTrack.endX ? $mouseTrack.startX : $mouseTrack.endX;
-                            let y = $mouseTrack.startY < $mouseTrack.endY ? $mouseTrack.startY : $mouseTrack.endY;
-                            $innerFunction._zoomArea(x/$viewers[viewNo]._currentScale, y/$viewers[viewNo]._currentScale, Math.abs($mouseTrack.endX - $mouseTrack.startX)/$viewers[viewNo]._currentScale, Math.abs($mouseTrack.endY - $mouseTrack.startY)/$viewers[viewNo]._currentScale, viewNo);
-                        }
-                        break;
-                    case MouseMode.Move :
-                        let A = $annotationScrollPaneAPI[viewNo].getContentPositionX() - startX;
-                        let B = $annotationScrollPaneAPI[viewNo].getContentPositionY() - startY;
-                        $viewers[viewNo]._centerX += A;
-                        $viewers[viewNo]._centerY += B;
-                        break;
-                }
-                $viewers[viewNo]._mouseMode = MouseMode.None;
-            });
-        },
+            },
 
         loadImage : function(imageServerUrl, tiff, currentPage, totalPage, properties, viewNo) {
 
@@ -562,7 +564,7 @@
             $viewers[viewNo].rotate = 0;
 
             $innerFunction.resetCanvas(viewNo);
-            //$innerFunction.scale($imageViewer[viewNo].initDisplayMode, viewNo);
+            $innerFunction.scale($imageViewer[viewNo].initDisplayMode, viewNo);
             $innerFunction.setPage($imageData[viewNo].currentPage, $imageData[viewNo].totalPage, $imageViewer[viewNo].wapperId, viewNo);
         },
 
@@ -589,6 +591,8 @@
             $imageScrollPaneAPI[viewNo].scrollToY($viewers[viewNo]._centerY * $viewers[viewNo]._currentScale - $viewers[viewNo].viewerHeight / 2);
             $tempScrollPaneAPI[viewNo].scrollToY($viewers[viewNo]._centerY * $viewers[viewNo]._currentScale - $viewers[viewNo].viewerHeight / 2);
             $annotationScrollPaneAPI[viewNo].scrollToY($viewers[viewNo]._centerY * $viewers[viewNo]._currentScale - $viewers[viewNo].viewerHeight / 2);
+
+            console.log('centerX :'+$viewers[viewNo]._centerX+', centerY :'+$viewers[viewNo]._centerY);
         },
 
         loadAnnotation: function() {

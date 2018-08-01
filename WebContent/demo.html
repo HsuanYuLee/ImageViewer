@@ -66,6 +66,7 @@
                 myViewer.resizeViewer(500, 300, 200);
             });
 
+            /*
             $('#resetWaterMark').click(function () {
                 myViewer.setWaterMark({
                     Font: 'bold 60pt Calibri',
@@ -79,6 +80,11 @@
             $('#clearViewer').click(function () {
                 myViewer.clearViewer();
             });
+            */
+            $('#showPrint').click(function () {
+                myViewer.showPrint(true);
+                myViewer2.showPrint(false);
+            })
         });
     </script>
 </head>
@@ -90,8 +96,9 @@
     <button id="loadImage">loadImage</button>
     <button id="loadImage2">loadImage2</button>
     <button id="resizeViewer">resizeViewer</button>
-    <button id="resetWaterMark">resetWaterMark</button>
-    <button id="clearViewer">clearViewer</button>
+    <!--<button id="resetWaterMark">resetWaterMark</button>-->
+    <!--<button id="clearViewer">clearViewer</button>-->
+    <button id="showPrint">showPrint</button>
 </div>
 <div style="background-color:bisque;" id="myDiv"></div>
 <div style="background-color:bisque;" id="myDiv2"></div>
