@@ -12,6 +12,7 @@
         Text: '中文 ImageViewer Demo',
     };
     let loadFromMoveTo = false;
+    let loadFoomZoomArea = false;
 
     let $watermarkCanvas = [];
     let $imageCanvas = [];
@@ -150,6 +151,9 @@
             $imageViewer[options.viewNo].minWidth = minWidth;
 
             $('#dummy-tool-btn-warp-'+options.viewNo).css({ width : $imageViewer[options.viewNo].width });
+
+            $viewers[options.viewNo].viewerWidth = $imageViewer[options.viewNo].width;
+            $viewers[options.viewNo].viewerHeight = $imageViewer[options.viewNo].height;
 
             $('#'+options.wapperId+'-PANEL-'+options.viewNo).remove();
             $innerFunction.renderViewer($imageViewer[options.viewNo], options.viewNo);
@@ -305,6 +309,8 @@
                 options.width = options.width[1];
                 $('#dummy-tool-btn-warp-'+viewNo).css({ width : options.width });
 
+                $viewers[viewNo].viewerWidth = options.width;
+
                 $('#'+options.wapperId+'-PANEL-'+viewNo).remove();
                 $innerFunction.renderViewer(options, $imageViewer[viewNo].viewNo);
 
@@ -324,6 +330,8 @@
                 options.minWidth = options.width[0];
                 options.width = options.width[1];
                 $('#dummy-tool-btn-warp-'+viewNo).css({ width : options.width });
+
+                $viewers[viewNo].viewerWidth = options.width;
 
                 $('#'+options.wapperId+'-PANEL-'+viewNo).remove();
                 $innerFunction.renderViewer(options, $imageViewer[viewNo].viewNo);
@@ -400,9 +408,9 @@
             if ($annotationCanvas[viewNo] === undefined) {
                 $annotationCanvas[viewNo] = document.getElementById('annotationCanvas-'+viewNo);
 
+                //------------------------------------------------------------------------------------------------------
+                //Mouse Event
                 let startX = null;    let startY = null;
-        //--------------------------------------------------------------------------------------------------------------
-        //Mouse Event
                 $annotationCanvas[viewNo].addEventListener('mousedown', function (e) {
 
                     $mouseTrack.startX = e.offsetX;   $mouseTrack.startY = e.offsetY;
@@ -456,6 +464,8 @@
                     }
                     $viewers[viewNo]._mouseMode = MouseMode.None;
                 });
+                //------------------------------------------------------------------------------------------------------
+
             }
             else {
                 $annotationDivElement[viewNo].removeChild(document.getElementById('annotationCanvas-'+viewNo));
@@ -536,7 +546,7 @@
             $tempCanvas[viewNo].width = $image[viewNo].image.width;
             $tempCanvas[viewNo].height = $image[viewNo].image.height;
             $annotationCanvas[viewNo].width = $image[viewNo].image.width ;
-            $annotationCanvas[viewNo].height = $image[viewNo].image.height;
+            $annotationCanvas[viewNo].height = $image[viewNo].image.height;``
 
             $viewers[viewNo].rotate = 0;
 
@@ -563,6 +573,17 @@
             $viewers[viewNo]._canvasDisplayWidth = $viewers[viewNo].imageWidth * $viewers[viewNo]._currentScale;
             $viewers[viewNo]._canvasDisplayHeight = $viewers[viewNo].imageHeight * $viewers[viewNo]._currentScale;
 
+            let X,Y;
+
+            if (loadFoomZoomArea){
+                X = $viewers[viewNo]._centerX * $viewers[viewNo]._currentScale - $viewers[viewNo].viewerWidth / 2;
+                Y = $viewers[viewNo]._centerY * $viewers[viewNo]._currentScale - $viewers[viewNo].viewerHeight / 2;
+                loadFoomZoomArea = false;
+            } else {
+                X = $annotationScrollPaneAPI[viewNo].getContentPositionX();
+                Y = $annotationScrollPaneAPI[viewNo].getContentPositionY();
+            }
+
             $imageScrollPaneAPI[viewNo].scrollTo(0,0);
             $tempScrollPaneAPI[viewNo].scrollTo(0,0);
             $annotationScrollPaneAPI[viewNo].scrollTo(0,0);
@@ -574,7 +595,9 @@
             $tempScrollPaneAPI[viewNo].reinitialise();
             $annotationScrollPaneAPI[viewNo].reinitialise();
 
-            $innerFunction.moveScroll(viewNo);
+            $imageScrollPaneAPI[viewNo].scrollTo(X,Y);
+            $tempScrollPaneAPI[viewNo].scrollTo(X,Y);
+            $annotationScrollPaneAPI[viewNo].scrollTo(X,Y);
         },
 
         loadAnnotation: function() {
@@ -639,16 +662,6 @@
             $innerFunction.resetCanvas(viewNo);
         },
 
-        moveScroll : function(viewNo) {
-            $imageScrollPaneAPI[viewNo].scrollToX($viewers[viewNo]._centerX * $viewers[viewNo]._currentScale - $viewers[viewNo].viewerWidth / 2);
-            $tempScrollPaneAPI[viewNo].scrollToX($viewers[viewNo]._centerX * $viewers[viewNo]._currentScale - $viewers[viewNo].viewerWidth / 2);
-            $annotationScrollPaneAPI[viewNo].scrollToX($viewers[viewNo]._centerX * $viewers[viewNo]._currentScale - $viewers[viewNo].viewerWidth / 2);
-
-            $imageScrollPaneAPI[viewNo].scrollToY($viewers[viewNo]._centerY * $viewers[viewNo]._currentScale - $viewers[viewNo].viewerHeight / 2);
-            $tempScrollPaneAPI[viewNo].scrollToY($viewers[viewNo]._centerY * $viewers[viewNo]._currentScale - $viewers[viewNo].viewerHeight / 2);
-            $annotationScrollPaneAPI[viewNo].scrollToY($viewers[viewNo]._centerY * $viewers[viewNo]._currentScale - $viewers[viewNo].viewerHeight / 2);
-        },
-
         zoomArea: function(x, y, width, height, viewNo) {
             if ($.isNumeric(x) && $.isNumeric(y) && $.isNumeric(width) && $.isNumeric(height)) {
                 $innerFunction._zoomArea(x, y, width, height, viewNo);
@@ -670,6 +683,8 @@
             // 兩者取小倍率(適當倍率) 而且最大是一倍
             $viewers[viewNo]._currentScale = Math.min($viewers[viewNo].viewerWidth/width, $viewers[viewNo].viewerHeight/height);
             $viewers[viewNo]._currentScale = $viewers[viewNo]._currentScale > 1 ? 1 : $viewers[viewNo]._currentScale;
+
+            loadFoomZoomArea = true;
 
             $innerFunction.resetCanvas(viewNo);
         },

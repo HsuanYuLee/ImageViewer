@@ -36,6 +36,7 @@
                                 showAnnotationTool: false,
                             });
 
+                            /*
                             myViewer2 = $('#myDiv2').imageviewer({
                                 width: 1000,
                                 minWidth: 750,
@@ -46,6 +47,7 @@
                                 showToolBar: true,
                                 showAnnotationTool: false,
                             });
+                            */
                         }
                     });
                     log = true;
@@ -62,8 +64,8 @@
                 ('http://localhost:8083/ImageViewer/imageServlet', false, 1, 2, {docId: '20262', formId: '', viewPage : ''} );
             });
 
-            $('#resizeViewer').click(function () {
-                myViewer.resizeViewer(500, 300, 200);
+            window.addEventListener('resize',function () {
+                myViewer.resizeViewer(document.getElementById('myDiv').offsetWidth - 100 , 600, 500);
             });
 
             /*
@@ -95,7 +97,6 @@
     <button id="logout">logout</button>
     <button id="loadImage">loadImage</button>
     <button id="loadImage2">loadImage2</button>
-    <button id="resizeViewer">resizeViewer</button>
     <!--<button id="resetWaterMark">resetWaterMark</button>-->
     <!--<button id="clearViewer">clearViewer</button>-->
     <button id="showPrint">showPrint</button>
