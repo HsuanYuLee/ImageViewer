@@ -142,6 +142,9 @@
 
         $imageViewer[$viewerNumber].resizeViewer = function(width, height, minWidth) {
 
+            let X = $annotationScrollPaneAPI[options.viewNo].getContentPositionX();
+            let Y = $annotationScrollPaneAPI[options.viewNo].getContentPositionY();
+
             $imageViewer[options.viewNo].width = width;
             $imageViewer[options.viewNo].height = height;
             $imageViewer[options.viewNo].minWidth = minWidth;
@@ -151,14 +154,9 @@
             $('#'+options.wapperId+'-PANEL-'+options.viewNo).remove();
             $innerFunction.renderViewer($imageViewer[options.viewNo], options.viewNo);
 
-            // move scroll
-            $imageScrollPaneAPI[options.viewNo].scrollToX($viewers[options.viewNo]._centerX * $viewers[options.viewNo]._currentScale - $viewers[options.viewNo].viewerWidth / 2);
-            $tempScrollPaneAPI[options.viewNo].scrollToX($viewers[options.viewNo]._centerX * $viewers[options.viewNo]._currentScale - $viewers[options.viewNo].viewerWidth / 2);
-            $annotationScrollPaneAPI[options.viewNo].scrollToX($viewers[options.viewNo]._centerX * $viewers[options.viewNo]._currentScale - $viewers[options.viewNo].viewerWidth / 2);
-
-            $imageScrollPaneAPI[options.viewNo].scrollToY($viewers[options.viewNo]._centerY * $viewers[options.viewNo]._currentScale - $viewers[options.viewNo].viewerHeight / 2);
-            $tempScrollPaneAPI[options.viewNo].scrollToY($viewers[options.viewNo]._centerY * $viewers[options.viewNo]._currentScale - $viewers[options.viewNo].viewerHeight / 2);
-            $annotationScrollPaneAPI[options.viewNo].scrollToY($viewers[options.viewNo]._centerY * $viewers[options.viewNo]._currentScale - $viewers[options.viewNo].viewerHeight / 2);
+            $imageScrollPaneAPI[options.viewNo].scrollTo(X,Y);
+            $tempScrollPaneAPI[options.viewNo].scrollTo(X,Y);
+            $annotationScrollPaneAPI[options.viewNo].scrollTo(X,Y);
         };
 
         $imageViewer[$viewerNumber].moveTo = function(page, x, y, width, height) {
@@ -298,6 +296,10 @@
             });
 
             $('#'+options.wapperId+'-btnUnMax-'+viewNo).click(function () {
+
+                let X = $annotationScrollPaneAPI[viewNo].getContentPositionX();
+                let Y = $annotationScrollPaneAPI[viewNo].getContentPositionY();
+
                 options.width = [options.width, options.minWidth];
                 options.minWidth = options.width[0];
                 options.width = options.width[1];
@@ -306,20 +308,18 @@
                 $('#'+options.wapperId+'-PANEL-'+viewNo).remove();
                 $innerFunction.renderViewer(options, $imageViewer[viewNo].viewNo);
 
-                // move scroll
-                $imageScrollPaneAPI[viewNo].scrollToX($viewers[viewNo]._centerX * $viewers[viewNo]._currentScale - $viewers[viewNo].viewerWidth / 2);
-                $tempScrollPaneAPI[viewNo].scrollToX($viewers[viewNo]._centerX * $viewers[viewNo]._currentScale - $viewers[viewNo].viewerWidth / 2);
-                $annotationScrollPaneAPI[viewNo].scrollToX($viewers[viewNo]._centerX * $viewers[viewNo]._currentScale - $viewers[viewNo].viewerWidth / 2);
-
-                $imageScrollPaneAPI[viewNo].scrollToY($viewers[viewNo]._centerY * $viewers[viewNo]._currentScale - $viewers[viewNo].viewerHeight / 2);
-                $tempScrollPaneAPI[viewNo].scrollToY($viewers[viewNo]._centerY * $viewers[viewNo]._currentScale - $viewers[viewNo].viewerHeight / 2);
-                $annotationScrollPaneAPI[viewNo].scrollToY($viewers[viewNo]._centerY * $viewers[viewNo]._currentScale - $viewers[viewNo].viewerHeight / 2);
+                $imageScrollPaneAPI[viewNo].scrollTo(X,Y);
+                $tempScrollPaneAPI[viewNo].scrollTo(X,Y);
+                $annotationScrollPaneAPI[viewNo].scrollTo(X,Y);
 
                 $('#'+options.wapperId+'-btnUnMax-'+viewNo).hide();
                 $('#'+options.wapperId+'-btnMax-'+viewNo).show();
             });
 
             $('#'+options.wapperId+'-btnMax-'+viewNo).click(function () {
+                let X = $annotationScrollPaneAPI[viewNo].getContentPositionX();
+                let Y = $annotationScrollPaneAPI[viewNo].getContentPositionY();
+
                 options.width = [options.width, options.minWidth];
                 options.minWidth = options.width[0];
                 options.width = options.width[1];
@@ -328,14 +328,9 @@
                 $('#'+options.wapperId+'-PANEL-'+viewNo).remove();
                 $innerFunction.renderViewer(options, $imageViewer[viewNo].viewNo);
 
-                // move scroll
-                $imageScrollPaneAPI[viewNo].scrollToX($viewers[viewNo]._centerX * $viewers[viewNo]._currentScale - $viewers[viewNo].viewerWidth / 2);
-                $tempScrollPaneAPI[viewNo].scrollToX($viewers[viewNo]._centerX * $viewers[viewNo]._currentScale - $viewers[viewNo].viewerWidth / 2);
-                $annotationScrollPaneAPI[viewNo].scrollToX($viewers[viewNo]._centerX * $viewers[viewNo]._currentScale - $viewers[viewNo].viewerWidth / 2);
-
-                $imageScrollPaneAPI[viewNo].scrollToY($viewers[viewNo]._centerY * $viewers[viewNo]._currentScale - $viewers[viewNo].viewerHeight / 2);
-                $tempScrollPaneAPI[viewNo].scrollToY($viewers[viewNo]._centerY * $viewers[viewNo]._currentScale - $viewers[viewNo].viewerHeight / 2);
-                $annotationScrollPaneAPI[viewNo].scrollToY($viewers[viewNo]._centerY * $viewers[viewNo]._currentScale - $viewers[viewNo].viewerHeight / 2);
+                $imageScrollPaneAPI[viewNo].scrollTo(X,Y);
+                $tempScrollPaneAPI[viewNo].scrollTo(X,Y);
+                $annotationScrollPaneAPI[viewNo].scrollTo(X,Y);
 
                 $('#'+options.wapperId+'-btnMax-'+viewNo).hide();
                 $('#'+options.wapperId+'-btnUnMax-'+viewNo).show();
@@ -525,7 +520,29 @@
         },
 
         drawImage : function(viewNo) {
-            $innerFunction.setImage($image[viewNo].image, viewNo);
+            $viewers[viewNo].imageWidth = $image[viewNo].image.width;
+            $viewers[viewNo].imageHeight = $image[viewNo].image.height;
+            $viewers[viewNo]._canvasDisplayWidth = $image[viewNo].image.width;
+            $viewers[viewNo]._canvasDisplayHeight = $image[viewNo].image.height;
+            $viewers[viewNo]._centerX = $image[viewNo].image.width / 2;
+            $viewers[viewNo]._centerY = $image[viewNo].image.height / 2;
+
+            let scale1 = $viewers[viewNo].viewerWidth / $image[viewNo].image.width;
+            let scale2 = $viewers[viewNo].viewerHeight / $image[viewNo].image.height;
+            $viewers[viewNo]._minScale = scale1 < scale2 ? scale1 : scale2;
+
+            $imageCanvas[viewNo].width = $image[viewNo].image.width ;
+            $imageCanvas[viewNo].height = $image[viewNo].image.height;
+            $tempCanvas[viewNo].width = $image[viewNo].image.width;
+            $tempCanvas[viewNo].height = $image[viewNo].image.height;
+            $annotationCanvas[viewNo].width = $image[viewNo].image.width ;
+            $annotationCanvas[viewNo].height = $image[viewNo].image.height;
+
+            $viewers[viewNo].rotate = 0;
+
+            $innerFunction.resetCanvas(viewNo);
+            $innerFunction.scale($imageViewer[viewNo].initDisplayMode, viewNo);
+            $innerFunction.setPage($imageData[viewNo].currentPage, $imageData[viewNo].totalPage, $imageViewer[viewNo].wapperId, viewNo);
             let ctx = $imageCanvas[viewNo].getContext('2d');
             ctx.drawImage($image[viewNo].image, 0, 0);
             if (loadFromMoveTo) {
@@ -540,32 +557,6 @@
             $('#'+wapperId+'-btnNext-'+viewNo).prop('disabled',false);
             if (currentPage === 1) { $('#'+wapperId+'-btnPrev-'+viewNo).prop('disabled',true); }
             if (currentPage === totalPage) { $('#'+wapperId+'-btnNext-'+viewNo).prop('disabled',true); }
-        },
-
-        setImage : function(image, viewNo) {
-            $viewers[viewNo].imageWidth = image.width;
-            $viewers[viewNo].imageHeight = image.height;
-            $viewers[viewNo]._canvasDisplayWidth = image.width;
-            $viewers[viewNo]._canvasDisplayHeight = image.height;
-            $viewers[viewNo]._centerX = image.width / 2;
-            $viewers[viewNo]._centerY = image.height / 2;
-
-            let scale1 = $viewers[viewNo].viewerWidth / image.width;
-            let scale2 = $viewers[viewNo].viewerHeight / image.height;
-            $viewers[viewNo]._minScale = scale1 < scale2 ? scale1 : scale2;
-
-            $imageCanvas[viewNo].width = image.width ;
-            $imageCanvas[viewNo].height = image.height;
-            $tempCanvas[viewNo].width = image.width;
-            $tempCanvas[viewNo].height = image.height;
-            $annotationCanvas[viewNo].width = image.width ;
-            $annotationCanvas[viewNo].height = image.height;
-
-            $viewers[viewNo].rotate = 0;
-
-            $innerFunction.resetCanvas(viewNo);
-            $innerFunction.scale($imageViewer[viewNo].initDisplayMode, viewNo);
-            $innerFunction.setPage($imageData[viewNo].currentPage, $imageData[viewNo].totalPage, $imageViewer[viewNo].wapperId, viewNo);
         },
 
         resetCanvas : function(viewNo) {
@@ -583,16 +574,7 @@
             $tempScrollPaneAPI[viewNo].reinitialise();
             $annotationScrollPaneAPI[viewNo].reinitialise();
 
-            // move scroll
-            $imageScrollPaneAPI[viewNo].scrollToX($viewers[viewNo]._centerX * $viewers[viewNo]._currentScale - $viewers[viewNo].viewerWidth / 2);
-            $tempScrollPaneAPI[viewNo].scrollToX($viewers[viewNo]._centerX * $viewers[viewNo]._currentScale - $viewers[viewNo].viewerWidth / 2);
-            $annotationScrollPaneAPI[viewNo].scrollToX($viewers[viewNo]._centerX * $viewers[viewNo]._currentScale - $viewers[viewNo].viewerWidth / 2);
-
-            $imageScrollPaneAPI[viewNo].scrollToY($viewers[viewNo]._centerY * $viewers[viewNo]._currentScale - $viewers[viewNo].viewerHeight / 2);
-            $tempScrollPaneAPI[viewNo].scrollToY($viewers[viewNo]._centerY * $viewers[viewNo]._currentScale - $viewers[viewNo].viewerHeight / 2);
-            $annotationScrollPaneAPI[viewNo].scrollToY($viewers[viewNo]._centerY * $viewers[viewNo]._currentScale - $viewers[viewNo].viewerHeight / 2);
-
-            console.log('centerX :'+$viewers[viewNo]._centerX+', centerY :'+$viewers[viewNo]._centerY);
+            $innerFunction.moveScroll(viewNo);
         },
 
         loadAnnotation: function() {
@@ -655,6 +637,16 @@
             ctx.translate(-$viewers[viewNo]._centerX, -$viewers[viewNo]._centerY);
 
             $innerFunction.resetCanvas(viewNo);
+        },
+
+        moveScroll : function(viewNo) {
+            $imageScrollPaneAPI[viewNo].scrollToX($viewers[viewNo]._centerX * $viewers[viewNo]._currentScale - $viewers[viewNo].viewerWidth / 2);
+            $tempScrollPaneAPI[viewNo].scrollToX($viewers[viewNo]._centerX * $viewers[viewNo]._currentScale - $viewers[viewNo].viewerWidth / 2);
+            $annotationScrollPaneAPI[viewNo].scrollToX($viewers[viewNo]._centerX * $viewers[viewNo]._currentScale - $viewers[viewNo].viewerWidth / 2);
+
+            $imageScrollPaneAPI[viewNo].scrollToY($viewers[viewNo]._centerY * $viewers[viewNo]._currentScale - $viewers[viewNo].viewerHeight / 2);
+            $tempScrollPaneAPI[viewNo].scrollToY($viewers[viewNo]._centerY * $viewers[viewNo]._currentScale - $viewers[viewNo].viewerHeight / 2);
+            $annotationScrollPaneAPI[viewNo].scrollToY($viewers[viewNo]._centerY * $viewers[viewNo]._currentScale - $viewers[viewNo].viewerHeight / 2);
         },
 
         zoomArea: function(x, y, width, height, viewNo) {
